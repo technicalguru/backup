@@ -9,18 +9,18 @@ Kubernetes and Docker databases) as well as by new types of compression, notific
 transfers to remote backup locations. 
 
 Features:
-full modular design
-Comes with modules for:
- filesystem backups
- MySQL database backups
- MySQL database backups from Kubernetes pods
- MySQL database backups from Docker containers
- FTP transfer to remote backup location
-extendable by custom backup modules
-compression of backup files
-supports hourly, daily, weekly and monthly backups
-keeps archived versions of backups
-notification by email (other types can be plugged in) when errors occur
+* full modular design
+* Comes with modules for:
+  * Filesystem backups
+  * MySQL database backups
+  * MySQL database backups from Kubernetes pods
+  * MySQL database backups from Docker containers
+  * FTP transfer to remote backup location
+* extendable by custom backup modules
+* GZIP compression of backup files (other types can be plugged in)
+* supports hourly, daily, weekly and monthly backups
+* keeps archived versions of backups
+* notification by email (other types can be plugged in) when errors occur
 
 
 # Installation and Configuration

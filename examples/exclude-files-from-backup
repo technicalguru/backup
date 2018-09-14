@@ -1,0 +1,17 @@
+var/log
+var/lib
+var/cache
+var/tmp
+var/run
+var/spool/postfix/private
+var/spool/postfix/public/cleanup
+var/spool/postfix/public/flush
+var/spool/postfix/public/showq
+var/qmail/spam
+root/.m2/repository
+root/.cpan/build
+root/.spamassassin
+root/temp
+*log
+*logs
+*cache

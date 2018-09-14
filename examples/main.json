@@ -1,0 +1,81 @@
+{
+	"hostname"        : "my-hostname",
+	"dailyBackupHour" : 13,
+	"weeklyWeekday"   : 6,
+	"monthlyDay"      : 1,
+	"paths"      : {
+        "backupDir" : "/var/backup",
+        "logDir"    : "/var/log/backup"
+	},
+	"modules" : {
+		"MySQL"      : {
+			"module"    : "Backup::Module::MySql",
+			"enabled"   : true,
+			"mysql"     : "/usr/bin/mysql",
+			"mysqldump" : "/usr/bin/mysqldump",
+			"username"  : "my-user",
+			"password"  : "my-password",
+			"hostname"  : "localhost",
+			"hourly"    : [ ],
+			"daily"     : [ ]
+		},
+		"Kubernetes" : {
+			"module"    : "Backup::Module::Kubernetes",
+			"enabled"   : true,
+			"kubectl"   : "/usr/bin/kubectl",
+			"modules"   : {
+				"MySQL" : {
+					"enabled"   : true,
+					"module"    : "Backup::Module::Kubernetes::MySql",
+					"hourly"    : [ ],
+					"daily"     : [ ]
+				}
+			}
+		},
+		"Docker" : {
+			"module"    : "Backup::Module::Docker",
+			"enabled"   : false,
+			"docker"    : "/usr/bin/docker",
+			"modules"   : {
+				"MySQL" : {
+					"module"    : "Backup::Module::Docker::MySql",
+					"hourly"    : [ ],
+					"daily"     : [ ]
+				}
+			}
+		},
+		"Files" : {
+			"module"        : "Backup::Module::File",
+			"enabled"       : true,
+			"timestampFile" : "/var/backup/Files/LastFullBackup.timestamp",
+			"tar"           : "/bin/tar",
+			"taropts"       : "--exclude-from=/etc/backup/exclude-files-from-backup",
+			"hourly"        : [ ],
+			"daily"         : [ "/home", "/etc", "/var", "/root" ]
+		}
+	},
+	"compression" : {
+		"name"      : "GZIP",
+		"module"    : "Backup::Compression::Gzip",
+        "gzip"      : "/bin/gzip"
+	},
+	"transfer"      : {
+		"name"      : "FTP",
+		"module"    : "Backup::Transfer::Ftp",
+        "ftp"       : "/usr/bin/ncftp",
+        "host"      : "my-backup-server.com",
+        "username"  : "my-ftp-user",
+        "password"  : "my-ftp-password",
+		"rootDir"   : "/my-backups/my-hostname"
+	},
+	"notification" : {
+		"name"      : "Email",
+		"module"    : "Backup::Notification::Email",
+		"enabled"   : true,
+        "method"    : "sendmail",
+		"sendmail"  : "/usr/sbin/sendmail",
+		"sender"    : "sender@example.com",
+		"senderName": "Linux Backup",
+		"recipient" : "recipient@example.com"
+	}
+}

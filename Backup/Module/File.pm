@@ -83,7 +83,7 @@ sub backup {
 			my $now = `LC_ALL=en_US.utf8 date +%d-%b`;
 			chomp($now);
 			my $dir = $self->getTimestampFilename();
-			$dir =~ s#^.*/##;
+			$dir =~ s#/[^/]+$##;
 			$self->{main}->mkDirs($dir);
 			system("echo \"$now\" >".$self->getTimestampFilename());
 		}

@@ -61,8 +61,8 @@
 	},
 	"transfer"      : {
 		"name"      : "FTP",
-		"module"    : "Backup::Transfer::Ftp",
-        "ftp"       : "/usr/bin/ncftp",
+		"module"    : "Backup::Transfer::NcFtp",
+        "ncftp"     : "/usr/bin/ncftp",
         "host"      : "my-backup-server.com",
         "username"  : "my-ftp-user",
         "password"  : "my-ftp-password",

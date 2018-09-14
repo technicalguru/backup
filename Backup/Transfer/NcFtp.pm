@@ -1,4 +1,4 @@
-package Backup::Transfer::Ftp;
+package Backup::Transfer::NcFtp;
 use strict;
 
 
@@ -57,7 +57,7 @@ sub transfer {
 
 sub getFtpCommand {
 	my $self = shift;
-	return $self->{config}->{ftp}.' -u '.$self->{config}->{username}.' -p '.$self->{config}->{password}.' '.$self->{config}->{host};
+	return $self->{config}->{ncftp}.' -u '.$self->{config}->{username}.' -p '.$self->{config}->{password}.' '.$self->{config}->{host};
 }
 
 sub sendFtpCmd {

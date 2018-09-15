@@ -4,8 +4,8 @@
 	"weeklyWeekday"   : 6,
 	"monthlyDay"      : 1,
 	"paths"      : {
-        "backupDir" : "/var/backup",
-        "logDir"    : "/var/log/backup"
+		"backupDir" : "/var/backup",
+		"logDir"    : "/var/log/backup"
 	},
 	"modules" : {
 		"MySQL"      : {
@@ -57,22 +57,23 @@
 	"compression" : {
 		"name"      : "GZIP",
 		"module"    : "Backup::Compression::Gzip",
-        "gzip"      : "/bin/gzip"
+		"gzip"      : "/bin/gzip"
 	},
 	"transfer"      : {
 		"name"      : "FTP",
 		"module"    : "Backup::Transfer::NcFtp",
-        "ncftp"     : "/usr/bin/ncftp",
-        "host"      : "my-backup-server.com",
-        "username"  : "my-ftp-user",
-        "password"  : "my-ftp-password",
+		"enabled"   : true,
+		"ncftp"     : "/usr/bin/ncftp",
+		"host"      : "my-backup-server.com",
+		"username"  : "my-ftp-user",
+		"password"  : "my-ftp-password",
 		"rootDir"   : "/my-backups/my-hostname"
 	},
 	"notification" : {
 		"name"      : "Email",
 		"module"    : "Backup::Notification::Email",
 		"enabled"   : true,
-        "method"    : "sendmail",
+		"method"    : "sendmail",
 		"sendmail"  : "/usr/sbin/sendmail",
 		"sender"    : "sender@example.com",
 		"senderName": "Linux Backup",

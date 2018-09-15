@@ -279,29 +279,31 @@ sub copyFiles {
 sub transferFiles {
 	my $self = shift;
 
-	my $logDir   = $self->{config}->{paths}->{logDir};
-	my $executor = Backup::Executor->new('logfile' => $logDir.'/TRANSFER-'.$self->{timestring}.'.log');
-	my $config   = $self->{config}->{transfer};
-	$config->{backupDir} = $self->{config}->{paths}->{backupDir};
-	$self->copyConfig($config, 'dryRun');
-	my $class    = $config->{module};
-	eval {
-		(my $pkg = $class) =~ s|::|/|g;
-		require "$pkg.pm";
-		import $class;
-	};
-	my $module   = $class->new('log' => $self->{log}->getPrefixLog($config->{name}, $self->{prefixSize}), 'config' => $config, 'executor' => $executor, 'main' => $self);
+	if ($self->{config}->{transfer}->{enabled}) {
+		my $logDir   = $self->{config}->{paths}->{logDir};
+		my $executor = Backup::Executor->new('logfile' => $logDir.'/TRANSFER-'.$self->{timestring}.'.log');
+		my $config   = $self->{config}->{transfer};
+		$config->{backupDir} = $self->{config}->{paths}->{backupDir};
+		$self->copyConfig($config, 'dryRun');
+		my $class    = $config->{module};
+		eval {
+			(my $pkg = $class) =~ s|::|/|g;
+			require "$pkg.pm";
+			import $class;
+		};
+		my $module   = $class->new('log' => $self->{log}->getPrefixLog($config->{name}, $self->{prefixSize}), 'config' => $config, 'executor' => $executor, 'main' => $self);
 
-	# Transfer all the backup files
-	$module->{log}->info('Transferring files to remote location');
-	my $backupDesc;
-	my @files = ();
-	foreach $backupDesc (@{$self->{files}}) {
-		if ($backupDesc->{transfer}) {
-			push(@files, $backupDesc->{transferFile});
+		# Transfer all the backup files
+		$module->{log}->info('Transferring files to remote location');
+		my $backupDesc;
+		my @files = ();
+		foreach $backupDesc (@{$self->{files}}) {
+			if ($backupDesc->{transfer}) {
+				push(@files, $backupDesc->{transferFile});
+			}
 		}
+		$module->transfer(\@files);
 	}
-	$module->transfer(\@files);
 }
 
 sub notify {

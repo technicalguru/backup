@@ -25,23 +25,35 @@ Features:
 
 # Installation and Configuration
 
-Clone git repo
-Create /etc/backup/main.json from example
+* Prerequisites:
+  * Perl 5.22 or above
+  * cpan install: JSON::Parse
+  * Perl binary available at /usr/local/bin (create with `ln -s /usr/bin/perl /usr/local/bin/perl` if required)
+* `git clone https://github.com/technicalguru/backup`
+* Create /etc/backup/main.json from example
 
 # Testing your backup
 
-backup.pl --dry-run --type=daily
+* Create backup and log directory (will not be created in test mode)
+* `backup.pl --dry-run --type=daily`
 
 # Running a backup
 
-backup.pl
+* backup.pl
+* For cronjob: create a shell file, e.g.
+
+```perl
+#!/bin/bash
+
+/usr/local/backup/backup.pl
+```
 
 # Command Line Options
 
---dry-run
---verbose
---type=(hourly|daily|weekly|monthly)
---help
+* `--dry-run` - perform a dry run, do not change anything (will set log level to verbose)
+* `--verbose` - set log level to verbose. 
+* `--type=(hourly|daily|weekly|monthly)` - perform the given type of backup
+* `--help` - show the usage help text
 
 # Writing your own Backup Module
 

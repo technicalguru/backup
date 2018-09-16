@@ -27,8 +27,7 @@ Features:
 
 * Prerequisites:
   * Perl 5.22 or above
-  * cpan install: JSON::Parse
-  * Perl binary available at /usr/local/bin (create with `ln -s /usr/bin/perl /usr/local/bin/perl` if required)
+  * `cpan install: JSON::Parse`
 * `git clone https://github.com/technicalguru/backup`
 * Create /etc/backup/main.json from example
 
@@ -39,7 +38,7 @@ Features:
 
 # Running a backup
 
-* backup.pl
+* `backup.pl`
 * For cronjob: create a shell file, e.g.
 
 ```perl

@@ -14,11 +14,6 @@ sub new {
 	return $self;
 }
 
-sub name {
-	my $self = shift;
-	return $self->{name};
-}
-
 sub backup {
 	my $self = shift;
 	my $type = shift;

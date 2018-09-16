@@ -39,6 +39,7 @@
 			"modules"   : {
 				"MySQL" : {
 					"module"    : "Backup::Module::Docker::MySql",
+					"enabled"   : true,
 					"hourly"    : [ ],
 					"daily"     : [ ]
 				}

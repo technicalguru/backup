@@ -15,11 +15,6 @@ sub new {
 	return $self;
 }
 
-sub name {
-	my $self = shift;
-	return $self->{name};
-}
-
 sub backup {
 	my $self = shift;
 	my $type = shift;
@@ -37,12 +32,12 @@ sub backup {
 			require "$pkg.pm";
 			import $moduleClass;
 		};
-		push(@modules, $moduleClass->new('log' => $self->{log}->getPrefixLog($module, $self->{prefixSize}), 'config' => $moduleConfig, 'executor' => $self->{executor}, 'main' => $self));
+		push(@modules, $moduleClass->new('name' => $module, 'log' => $self->{log}->getPrefixLog($module, $self->{prefixSize}), 'config' => $moduleConfig, 'executor' => $self->{executor}, 'main' => $self));
 	}
 
 	# Let modules do their job
 	foreach $module (@modules) {
-		if ($self->{config}->{modules}->{$module->name()}->{enabled}) {
+		if ($self->{config}->{modules}->{$module->{name}}->{enabled}) {
 			my @MF = $module->backup($type);
 			if ($module->{error}) {
 				$self->{error} = 1;
@@ -64,10 +59,6 @@ sub getContainerInfos {
 	my ($ns, $pod, $container, $image);
 
 	if ($self->{config}->{'kubectl'}) {
-		if ($type eq 'hourly') {
-			return $self->{config}->{'hourly'};
-		}
-
 		my $cmd = $self->{config}->{'kubectl'}.' get pods --all-namespaces -o jsonpath=\'{range .items[*]}{@.metadata.namespace}{" "}{@.metadata.name}{" "}{@.spec.containers[*].name}{" "}{@.spec..image}{" "}{"\n"}{end}\'|grep '.$search.':';
 		if (open(FIN, "$cmd|")) {
 			while (<FIN>) {

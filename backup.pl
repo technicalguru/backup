@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/env perl
 use strict;
 # Find modules regardless how the script was called
 use File::Basename;
@@ -49,6 +49,7 @@ if (!$config->{error}) {
 
 	# Calculate log file
 	my $logfile = $main->{config}->{paths}->{logDir}.'/backup-'.$main->{timestring}.'.log';
+	system("cp /dev/null $logfile");
 	$log->{logfile} = $logfile;
 
 	# Start the backup

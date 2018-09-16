@@ -70,6 +70,7 @@ sub backup {
 		# Finally, tell the total backupDir size
 		my $backupDir = $self->{config}->{paths}->{backupDir};
 		my $size = `du -hs "$backupDir"`;
+		chomp($size);
 		$self->{log}->info('Total Backup Size: '.$size);
 	} else {
 		$self->{log}->info('No backup was produced');

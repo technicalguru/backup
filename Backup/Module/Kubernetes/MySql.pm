@@ -10,11 +10,6 @@ sub new {
 	return $self;
 }
 
-sub name {
-	my $self = shift;
-	return 'MySQL';
-}
-
 sub backup {
 	my $self = shift;
 	my $type = shift;

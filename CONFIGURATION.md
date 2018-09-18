@@ -19,9 +19,7 @@ The configuration must be a text file `main.json` containing strictly valid JSON
 ## Name
 
 ```json
-...
 	"hostname" : "my-hostname",
-...
 ```
 
 This information will be used in notifications only and has no further meaning.
@@ -29,11 +27,9 @@ This information will be used in notifications only and has no further meaning.
 ## Backup Times
 
 ```json
-...
 	"dailyBackupHour" : 13,
 	"weeklyWeekday"   : 6,
 	"monthlyDay"      : 1,
-...
 ```
 
 | Name | Value | Description |
@@ -45,12 +41,10 @@ This information will be used in notifications only and has no further meaning.
 ## Paths
 
 ```json
-...
 	"paths" : {
 		"backupDir" : "/var/backup",
 		"logDir"    : "/var/log/backup"
-	},
-...
+	}
 ```
 
 | Name | Value | Description |
@@ -64,16 +58,12 @@ All backups are performed by modules. This enabled new types of backups when
 a simple file backup is not sufficient. Modules are defined as follows:
 
 ```json
-...
 	"modules" : {
 		"myModuleName" : {
 			"module"  : "Perl::Module::Name",
-			"enabled" : true,
-			...
+			"enabled" : true
 		}
-		...
-	},
-...
+	}
 ```
 
 You can give individual names to your modules. These names will be used:
@@ -95,14 +85,11 @@ A compression step will be performed after all modules made their backup. The mo
 is defined as follows:
 
 ```json
-...
 	"compression" : {
 		"name"    : "MyCompression",
 		"module"  : "Perl::Module::Name",
-		"enabled" : true,
-		...
-	},
-...
+		"enabled" : true
+	}
 ```
 
 Please check the individual compression module for the correct configuration.
@@ -119,14 +106,11 @@ All backup files that were created can be transferred to a remote location.
 This transfer is configured as follows:
 
 ```json
-...
 	"transfer" : {
 		"name"    : "MyTransfer",
 		"module"  : "Perl::Module::Name",
-		"enabled" : true,
-		...
+		"enabled" : true
 	},
-...
 ```
 
 Please check the individual transfer module for the correct configuration.
@@ -143,14 +127,11 @@ The backup program will send out a notification when errors occurred.
 Configure this notification as follows:
 
 ```json
-...
 	"notification" : {
 		"name"    : "MyNotification",
 		"module"  : "Perl::Module::Name",
-		"enabled" : true,
-		...
-	},
-...
+		"enabled" : true
+	}
 ```
 
 Please check the individual notification module for the correct configuration.
@@ -163,17 +144,93 @@ Please check the individual notification module for the correct configuration.
 
 # File Module
 
+## Description
+
+This module performs a TAR-based filesystem backup. All backups will be full backups of
+the specified directories except daily backups. These daily backups are performed 
+incrementally since last full backup.
+
+## Configuration
+
 # MySQL Module
 
-# Kubernetes Module
+## Description
+
+This module connects to any MySQL server and performs a mysqldump. It requires a MySQL
+client to be available on the host.
+
+It is possible to define a list of databases that are dumped in hourly backups and in 
+daily backups. Weekly and monthly backups will use the daily configuration.
+
+## Configuration
+
+# Kubernetes Modules
+
+## Description
+
+Kubernetes is specific as usually the data is hidden in pods and containers.
+Although container technology is intended to be stateless, you might have some information 
+in a few containers that change frequently and cannot be restored when the container is lost.
+The Kubernetes modules give you the possibility to extract this information from these
+pods and containers and store it on your host.
+
+## Configuration
+
+## Kubernetes MySQL Module
+
+This module connects to a running MySQL container inside Kubernetes and performs a 
+mysqldump.
 
 # Docker Module
 
+## Description
+
+Docker is specific as usually the data is hidden in containers.
+Although container technology is intended to be stateless, you might have some information 
+in a few containers that change frequently and cannot be restored when the container is lost.
+The Docker modules give you the possibility to extract this information from these
+containers and store it on your host.
+
+## Configuration
+
+## Docker  MySQL Module
+
+This module connects to a running MySQL container inside Kubernetes and performs a 
+mysqldump.
+
 # Compression Module Gzip
+
+## Description
+
+This module compresses backup files using gzip. It requires gzip to be installed on
+your host.
+
+## Configuration
 
 # Transfer Module NcFtp
 
+## Description
+
+This module transfers backup files to remote destinations using ncftp. It requires ncftp to be installed on
+your host.
+
+## Configuration
+
 # Transfer Module Scp
 
+## Description
+
+This module transfers backup files to remote destinations using scp. It requires ssh and scp to be installed on
+your host. It will also need an SSH identity file to connect to the remote site.
+
+## Configuration
+
 # Notification Module Email
+
+## Description
+
+This module will email the log file of a failed backup to a defined recipient. It requires sendmail to be
+installed on your host.
+
+## Configuration
 

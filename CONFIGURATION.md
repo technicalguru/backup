@@ -14,6 +14,8 @@ The configuration must be a text file `main.json` containing strictly valid JSON
 * no trailing commas like ["a","b","c",]. 
 * no trailing non-whitespace, like the second "]" in ["a"]].
 
+An example can be found at [```examples/main.json```](examples/main.json).
+
 # Structure
 
 ## Name

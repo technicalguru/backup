@@ -155,8 +155,8 @@ incrementally since last full backup.
 ```json
 	"modules" : {
 		"myFileBackup" : {
-			"module"  : "Perl::Module::File",
-			"enabled" : true
+			"module"        : "Perl::Module::File",
+			"enabled"       : true,
 			"timestampFile" : "/var/backup/LastFullBackup.timestamp",
 			"tar"           : "/bin/tar",
 			"taropts"       : "--exclude-from=/etc/backup/exclude-files-from-backup",
@@ -345,7 +345,7 @@ your host.
 	"compression" : {
 		"name"      : "GZIP",
 		"module"    : "Backup::Compression::Gzip",
-        "gzip"      : "/bin/gzip"
+		"gzip"      : "/bin/gzip"
 	}
 ```
 
@@ -367,10 +367,10 @@ your host.
 		"name"      : "FTP",
 		"enabled"   : true,
 		"module"    : "Backup::Transfer::NcFtp",
-        "ncftp"     : "/usr/bin/ncftp",
-        "host"      : "your-ftp-server-hostname",
-        "username"  : "ftp-username",
-        "password"  : "ftp-password",
+		"ncftp"     : "/usr/bin/ncftp",
+		"host"      : "your-ftp-server-hostname",
+		"username"  : "ftp-username",
+		"password"  : "ftp-password",
 		"rootDir"   : "/remote/path"
 	}
 ```
@@ -408,7 +408,7 @@ installed on your host.
 		"name"      : "Email",
 		"module"    : "Backup::Notification::Email",
 		"enabled"   : true,
-        "method"    : "sendmail",
+		"method"    : "sendmail",
 		"sendmail"  : "/usr/sbin/sendmail",
 		"sender"    : "sender@example.com",
 		"senderName": "Linux Backup",

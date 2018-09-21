@@ -29,7 +29,7 @@ Features:
   * Perl 5.22 or above
   * `cpan install: JSON::Parse`
 * `git clone https://github.com/technicalguru/backup`
-* Create /etc/backup/main.json from example
+* Create /etc/backup/main.json from example. Follow the [Configuration guide](CONFIGURATION.md).
 
 # Testing your backup
 
@@ -61,5 +61,5 @@ Features:
 
 # Writing your own Backup Module
 
-see examples/ExampleModule.pm
+see [```ExampleModule.pm```](examples/ExampleModule.pm)
 

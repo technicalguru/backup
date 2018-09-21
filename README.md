@@ -41,10 +41,15 @@ Features:
 * `backup.pl`
 * For cronjob: create a shell file, e.g.
 
-```perl
+```bash
 #!/bin/bash
 
 /usr/local/backup/backup.pl
+```
+* Define the backup job in ```/etc/crontab```, e.g.:
+
+```crontab
+0 * * * * root /usr/local/backup/backup.sh >/var/log/backup/cronjob.log 2>&1
 ```
 
 # Command Line Options

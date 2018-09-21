@@ -127,7 +127,7 @@ The backup program will send out a notification when errors occurred.
 Configure this notification as follows:
 
 ```json
-	"notification" : {
+	notification" : {
 		"name"    : "MyNotification",
 		"module"  : "Perl::Module::Name",
 		"enabled" : true
@@ -152,6 +152,28 @@ incrementally since last full backup.
 
 ## Configuration
 
+```json
+	"modules" : {
+		"myFileBackup" : {
+			"module"  : "Perl::Module::File",
+			"enabled" : true
+			"timestampFile" : "/var/backup/LastFullBackup.timestamp",
+			"tar"           : "/bin/tar",
+			"taropts"       : "--exclude-from=/etc/backup/exclude-files-from-backup",
+			"hourly"        : [ ],
+			"daily"         : [ "/home", "/etc", "/var" ]
+		}
+	}
+```
+
+| Name | Value | Description |
+| ---- | ----- | ----------- |
+| timestampFile | string | The path of the file where the module can save the timestamp of its last full backup (required for incremental backups) |
+| tar | string | The path of the TAR binary, usually at ```/bin/tar``` |
+| taropts | string | Additional options for TAR, e.g. exclude file |
+| hourly | list of strings | The path names to backup at each hour |
+| daily | list of strings | The path names to backup at daily, weekly and monthly backups (hourly paths shall be included here) |
+
 # MySQL Module
 
 ## Description
@@ -164,6 +186,32 @@ daily backups. Weekly and monthly backups will use the daily configuration.
 
 ## Configuration
 
+```json
+	"modules" : {
+		"MySQLBackup"      : {
+			"module"    : "Backup::Module::MySql",
+			"enabled"   : true,
+			"mysql"     : "/usr/bin/mysql",
+			"mysqldump" : "/usr/bin/mysqldump",
+			"username"  : "mysql-user",
+			"password"  : "mysql-password",
+			"hostname"  : "mysql-host",
+			"hourly"    : [ ],
+			"daily"     : [ ]
+		},
+	}
+```
+
+| Name | Value | Description |
+| ---- | ----- | ----------- |
+| mysql | string | The path of the mysql client binary, usually at ```/usr/bin/mysql``` |
+| mysqldump | string | The path of the mysqldump binary, usually at ```/usr/bin/mysqldump``` |
+| username | string | The login user at MySQL to be used |
+| password| string | The password to be used at MySQL |
+| hostname | string | The MySQL hostname, usually ```localhost``` or ```127.0.0.1``` |
+| hourly | list of strings | The schemas to backup at each hour. An empty list will not perform an hourly backup. |
+| daily | list of strings | The schemas to backup at daily, weekly and monthly backups. An empty list will backup all schemas inside the database instance |
+
 # Kubernetes Modules
 
 ## Description
@@ -174,12 +222,55 @@ in a few containers that change frequently and cannot be restored when the conta
 The Kubernetes modules give you the possibility to extract this information from these
 pods and containers and store it on your host.
 
+The Kubernetes module is a meta module that delegates backup tasks to individual sub-modules.
+This configuration is alike the main backup script.
+
 ## Configuration
+
+```json
+	"modules" : {
+		"MyKubernetes" : {
+			"module"    : "Backup::Module::Kubernetes",
+			"enabled"   : true,
+			"kubectl"   : "/usr/bin/kubectl",
+			"modules"   : {
+			}
+		}
+	}
+```
+
+| Name | Value | Description |
+| ---- | ----- | ----------- |
+| kubectl | string | The path of the Kubernetes kubectl binary, usually at ```/usr/bin/kubectl``` |
+| modules | object | The definition of the sub-modules (see subsequent sections) |
 
 ## Kubernetes MySQL Module
 
 This module connects to a running MySQL container inside Kubernetes and performs a 
-mysqldump.
+mysqldump. This module will auto-discover all containers that derive from the official
+mysql DockerHub image.
+
+```json
+	"modules" : {
+		"MyKubernetes" : {
+			"modules"   : {
+				"MySQLBackup" : {
+					"enabled"   : true,
+					"module"    : "Backup::Module::Kubernetes::MySql",
+					"hourly"    : [ ],
+					"daily"     : [ ]
+				}
+			}
+		}
+	}
+```
+
+| Name | Value | Description |
+| ---- | ----- | ----------- |
+| hourly | list of strings | The container names to backup at each hour. An empty list will not perform an hourly backup. |
+| daily | list of strings | The container names to backup at daily, weekly and monthly backups. An empty list will backup all containers. |
+
+**Note** The naming scheme for the container names is currently under development. It is advisable to use an empty list at the moment.
 
 # Docker Module
 
@@ -191,12 +282,55 @@ in a few containers that change frequently and cannot be restored when the conta
 The Docker modules give you the possibility to extract this information from these
 containers and store it on your host.
 
+The Docker module is a meta module that delegates backup tasks to individual sub-modules.
+This configuration is alike the main backup script.
+
 ## Configuration
+
+```json
+	"modules" : {
+		"MyDocker" : {
+			"module"    : "Backup::Module::Docker",
+			"enabled"   : false,
+			"docker"    : "/usr/bin/docker",
+			"modules"   : {
+			}
+		}
+	}
+```
+
+| Name | Value | Description |
+| ---- | ----- | ----------- |
+| docker | string | The path of the docker binary, usually at ```/usr/bin/docker``` |
+| modules | object | The definition of the sub-modules (see subsequent sections) |
 
 ## Docker  MySQL Module
 
-This module connects to a running MySQL container inside Kubernetes and performs a 
-mysqldump.
+This module connects to a running MySQL container and performs a 
+mysqldump. This module will auto-discover all containers that derive from the official
+mysql DockerHub image.
+
+```json
+	"modules" : {
+		"MyDocker" : {
+			"modules"   : {
+				"MySQLBackup" : {
+					"enabled"   : true,
+					"module"    : "Backup::Module::Docker::MySql",
+					"hourly"    : [ ],
+					"daily"     : [ ]
+				}
+			}
+		}
+	}
+```
+
+| Name | Value | Description |
+| ---- | ----- | ----------- |
+| hourly | list of strings | The container names to backup at each hour. An empty list will not perform an hourly backup. |
+| daily | list of strings | The container names to backup at daily, weekly and monthly backups. An empty list will backup all containers. |
+
+**Note** The naming scheme for the container names is currently under development. It is advisable to use an empty list at the moment.
 
 # Compression Module Gzip
 
@@ -207,6 +341,18 @@ your host.
 
 ## Configuration
 
+```json
+	"compression" : {
+		"name"      : "GZIP",
+		"module"    : "Backup::Compression::Gzip",
+        "gzip"      : "/bin/gzip"
+	}
+```
+
+| Name | Value | Description |
+| ---- | ----- | ----------- |
+| gzip | string | The path to the GZIP binary, usually at ```/bin/gzip``` |
+
 # Transfer Module NcFtp
 
 ## Description
@@ -215,6 +361,27 @@ This module transfers backup files to remote destinations using ncftp. It requir
 your host.
 
 ## Configuration
+
+```json
+	"transfer"      : {
+		"name"      : "FTP",
+		"enabled"   : true,
+		"module"    : "Backup::Transfer::NcFtp",
+        "ncftp"     : "/usr/bin/ncftp",
+        "host"      : "your-ftp-server-hostname",
+        "username"  : "ftp-username",
+        "password"  : "ftp-password",
+		"rootDir"   : "/remote/path"
+	}
+```
+
+| Name | Value | Description |
+| ---- | ----- | ----------- |
+| ncftp | string | The path to the ncftp binary, usually at ```/usr/bin/ncftp``` |
+| host | string | The hostname of the remote FTP server |
+| username | string | The FTP login username |
+| password | string | The FTP password |
+| rootDir | string | The remote path where the backups shall be stored at the FTP server |
 
 # Transfer Module Scp
 
@@ -225,6 +392,8 @@ your host. It will also need an SSH identity file to connect to the remote site.
 
 ## Configuration
 
+** Under Development **
+
 # Notification Module Email
 
 ## Description
@@ -233,4 +402,25 @@ This module will email the log file of a failed backup to a defined recipient. I
 installed on your host.
 
 ## Configuration
+
+```json
+	"notification" : {
+		"name"      : "Email",
+		"module"    : "Backup::Notification::Email",
+		"enabled"   : true,
+        "method"    : "sendmail",
+		"sendmail"  : "/usr/sbin/sendmail",
+		"sender"    : "sender@example.com",
+		"senderName": "Linux Backup",
+		"recipient" : "recipient@example.com"
+	}
+```
+
+| Name | Value | Description |
+| ---- | ----- | ----------- |
+| method | string | The method to be used for email notification. Currently only ```/sendmail``` is implemented. |
+| sendmail | string | (for sendmail only) The path to the sendmail binary, usually at ```/usr/sbin/sendmail``` |
+| sender | string | The e-mail address to be used as sender of the email. |
+| senderName | string | The sender name to be used. |
+| recipient | string | The e-mail address of the recipient of the email. |
 

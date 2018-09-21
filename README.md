@@ -22,6 +22,12 @@ Features:
 * keeps archived versions of backups
 * notification by email (other types can be plugged in) when errors occur
 
+# Status and Known Issues
+
+Backup is stable. The current version is 1.0 and has some minor issues:
+
+* MySQL modules for Kubernetes and Docker cannot be configured to backup selected containers only.
+* The SCP module is not ready yet.
 
 # Installation and Configuration
 

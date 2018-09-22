@@ -28,7 +28,7 @@ Features:
 Backup is stable. The current version is 1.0 and has some minor issues:
 
 * MySQL modules for Kubernetes and Docker cannot be configured to backup selected containers only.
-* The SCP module is not ready yet.
+* The SCP module is not ready yet (available on master branch only).
 
 # Installation and Configuration
 

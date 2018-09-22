@@ -366,7 +366,7 @@ your host.
 
 ```json
 	"transfer"      : {
-		"name"      : "FTP",
+		"name"      : "MyFTP",
 		"enabled"   : true,
 		"module"    : "Backup::Transfer::NcFtp",
 		"ncftp"     : "/usr/bin/ncftp",
@@ -390,11 +390,34 @@ your host.
 ## Description
 
 This module transfers backup files to remote destinations using scp. It requires ssh and scp to be installed on
-your host. It will also need an SSH identity file to connect to the remote site.
+your host. It will also need an SSH identity file to connect to the remote site to avoid password-based authentication.
 
 ## Configuration
 
-** Under Development **
+```json
+	"transfer"      : {
+		"name"      : "MySCP",
+		"enabled"   : true,
+		"module"    : "Backup::Transfer::Scp",
+		"ssh"       : "/usr/bin/ssh",
+		"sshopts"   : "-T -i /path/to/id_rsa",
+		"scp"       : "/usr/bin/scp",
+		"scpopts"   : "-Bpq -i /path/to/id_rsa",
+		"username"  : "my-remote-user",
+		"rootDir"   : "/remote/root/path",
+		"hostname"  : "remote.server.de"
+	}
+```
+
+| Name | Value | Description |
+| ---- | ----- | ----------- |
+| ssh | string | The path to the ssh binary, usually at ```/usr/bin/ssh``` |
+| sshopts | string | Options to pass to SSH in order to configure connection. You shall always include -T and -i options |
+| scp | string | The path to the scp binary, usually at ```/usr/bin/scp``` |
+| scpopts | string | Options to pass to SCP in order to configure connection. You shall always include -Bpq and -i options |
+| username | string | The remote login name |
+| rootDir | string | The remote path where the backups shall be stored at the server |
+| host | string | The hostname of the remote server |
 
 # Notification Module Email
 

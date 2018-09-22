@@ -16,6 +16,7 @@ Features:
   * MySQL database backups from Kubernetes pods
   * MySQL database backups from Docker containers
   * FTP transfer to remote backup location
+  * SCP transfer to remote backup location
 * extendable by custom backup modules
 * GZIP compression of backup files (other types can be plugged in)
 * supports hourly, daily, weekly and monthly backups

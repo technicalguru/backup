@@ -68,6 +68,7 @@ sub backup {
 		if ($rc) {
 			$self->{log}->error('TAR command failed. See '.$self->{executor}->{logfile});
 			$self->{error} = 1;
+			unlink($file);
 		} else {
 			$self->{log}->info(scalar(@DIRS).' files/dirs in backup');
 			push(@RC, {'name' => $self->{name}.'-'.$tarType, 'noSubDir' => 1, 'filename' => $file, 'needsCompression' => 0});

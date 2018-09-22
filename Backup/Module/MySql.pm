@@ -63,6 +63,7 @@ sub exportDatabase {
 		$rc = $self->{executor}->execute($cmd);
 	}
 	return $dumpfile if !$rc;
+	unlink($dumpfile);
 	return 0;
 }
 

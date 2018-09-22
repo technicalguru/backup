@@ -63,6 +63,7 @@ sub dumpMySql {
 		$rc = system($cmd) >> 8;
 	}
 	return $dumpfile if !$rc;
+	unlink($dumpfile);
 	return '';
 }
 

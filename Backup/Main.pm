@@ -295,7 +295,7 @@ sub transferFiles {
 		my $module   = $class->new('log' => $self->{log}->getPrefixLog($config->{name}, $self->{prefixSize}), 'config' => $config, 'executor' => $executor, 'main' => $self);
 
 		# Transfer all the backup files
-		$module->{log}->info('Transferring files to remote location');
+		$module->{log}->info('Transferring files to remote location...');
 		my $backupDesc;
 		my @files = ();
 		foreach $backupDesc (@{$self->{files}}) {

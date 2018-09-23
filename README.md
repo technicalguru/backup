@@ -34,6 +34,7 @@ Backup is stable. The current version is 1.0 and has some minor issues:
 
 * Prerequisites:
   * Perl 5.22 or above
+  * `cpan install: JSON`
   * `cpan install: JSON::Parse`
 * `git clone https://github.com/technicalguru/backup`
 * Create /etc/backup/main.json from example. Follow the [Configuration guide](CONFIGURATION.md).

@@ -2,6 +2,7 @@ package Backup::Main;
 use strict;
 use Backup::Log;
 use Backup::Executor;
+use JSON;
 
 my @MONNAME = ('January', 'February', 'March', 'April',
               'May', 'June', 'July', 'August',
@@ -23,7 +24,8 @@ sub new {
 
 	# Initialize
 	$self->checkDirectories();
-	my @T = localtime(time);
+	$self->{time} = time;
+	my @T = localtime($self->{time});
 	$self->{timestamp} = \@T;
 	if (!$self->{backupType}) {
 		$self->computeBackupType();
@@ -66,6 +68,9 @@ sub backup {
 
 		# Cleanup
 		$self->cleanup();
+
+		# Save status
+		$self->updateStatus();
 
 		# Finally, tell the total backupDir size
 		my $backupDir = $self->{config}->{paths}->{backupDir};
@@ -350,6 +355,51 @@ sub getPrefixSize {
 	}
 
 	return $rc;
+}
+
+sub updateStatus {
+	my $self = shift;
+
+	$self->loadStatus() if !defined($self->{status});
+
+	delete($self->{status}->{$self->{backupType}}->{$self->{timestring}});
+	$self->{status}->{$self->{backupType}}->{$self->{timestring}} = {
+		'time' => $self->{time},
+		'success' => int(!$self->{error})
+	};
+
+	$self->saveStatus();
+}
+
+sub loadStatus {
+	my $self = shift;
+	my $dir  = $self->{config}->{paths}->{backupDir};
+	my $file = $dir.'/status.json';
+	my $json;
+
+	if (open(CFGIN, "<$file")) {
+		local $/= undef;
+		$json = <CFGIN>;
+		close(CFGIN);
+		$self->{status} = parse_json($json);
+	} else {
+		$self->{status} = {};
+	}
+}
+
+sub saveStatus {
+	my $self = shift;
+	my $dir  = $self->{config}->{paths}->{backupDir};
+	my $file = $dir.'/status.json';
+	my $json;
+
+	if (!$self->{config}->{dryRun}) {
+		$self->mkDirs($dir);
+		if (open(CFGOUT, ">$file")) {
+			print CFGOUT encode_json($self->{status});
+		}
+		close(CFGOUT);
+	}
 }
 
 1;

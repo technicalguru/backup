@@ -28,7 +28,6 @@ Features:
 Backup is stable. The current version is 1.0 and has some minor issues:
 
 * MySQL modules for Kubernetes and Docker cannot be configured to backup selected containers only.
-* The SCP module is not ready yet (available on master branch only).
 
 # Installation and Configuration
 
@@ -64,7 +63,7 @@ Backup is stable. The current version is 1.0 and has some minor issues:
 
 * `--dry-run` - perform a dry run, do not change anything (will set log level to verbose)
 * `--verbose` - set log level to verbose. 
-* `--type=(hourly|daily|weekly|monthly)` - perform the given type of backup
+* `--type=(hourly|daily|weekly|monthly|mobile)` - perform the given type of backup
 * `--help` - show the usage help text
 
 # Writing your own Backup Module

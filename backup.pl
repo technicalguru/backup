@@ -28,7 +28,7 @@ GetOptions(
 if ($help) {
 	showHelp(0);
 }
-if (@ARGV || ($backupType && !grep(/^$backupType$/, ('hourly', 'daily', 'weekly', 'monthly')))) {
+if (@ARGV || ($backupType && !grep(/^$backupType$/, ('hourly', 'daily', 'weekly', 'monthly', 'mobile')))) {
 	showHelp(1);
 }
 

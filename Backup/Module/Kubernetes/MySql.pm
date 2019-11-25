@@ -63,11 +63,16 @@ sub getMySqlInfos {
 	my $self = shift;
 	my $type = shift;
 
-	my $info = $self->{main}->getContainerInfos($type, 'mysql');
+	my $info    = $self->{main}->getContainerInfos($type, 'mysql');
+	my $mariadb = $self->{main}->getContainerInfos($type, 'mariadb');
 	my $rc   = {};
 	if ($type eq 'hourly') {
 	} else {
 		$rc = $info;
+		my $name;
+		foreach $name (keys(%{$mariadb})) {
+			$rc->{$name} = $mariadb->{$name};
+		}
 	}
 	return $rc;
 }

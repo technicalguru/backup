@@ -2,6 +2,8 @@ package Backup::Main;
 use strict;
 use Backup::Log;
 use Backup::Executor;
+use JSON;
+use JSON::Parse 'parse_json';
 
 my @MONNAME = ('January', 'February', 'March', 'April',
               'May', 'June', 'July', 'August',
@@ -23,9 +25,10 @@ sub new {
 
 	# Initialize
 	$self->checkDirectories();
-	my @T = localtime(time);
+	$self->{time} = time;
+	my @T = localtime($self->{time});
 	$self->{timestamp} = \@T;
-	if (!$self->{backupType}) {
+	if (!$self->{backupType} || $self->{backupType} eq 'mobile') {
 		$self->computeBackupType();
 	}
 	$self->computeTimeString();
@@ -45,35 +48,43 @@ sub backup {
 		$self->{log}->info('Running in dry mode...');
 	}
 
-	# Load modules
-	return 0 if !$self->loadModules();
-
-	# perform the backup in each module
-	return 0 if !$self->backupModules();
-
-	if (scalar(@{$self->{files}}) > 0) {
-		# Compress files
-		$self->compressFiles();
-
-		# Copy files to backup location
-		$self->copyFiles();
-
-		# Transfer files to remote location
-		$self->transferFiles();
-
-		# Notify errors
-		$self->notify();
-
-		# Cleanup
-		$self->cleanup();
-
-		# Finally, tell the total backupDir size
-		my $backupDir = $self->{config}->{paths}->{backupDir};
-		my $size = `du -hs "$backupDir"`;
-		chomp($size);
-		$self->{log}->info('Total Backup Size: '.$size);
+	# Special case: NONE
+	if ($self->{backupType} eq 'none') {
+		$self->{log}->info('Nothing to do. Backup is up-to-date');
 	} else {
-		$self->{log}->info('No backup was produced');
+		# Load modules
+		return 0 if !$self->loadModules();
+
+		# perform the backup in each module
+		return 0 if !$self->backupModules();
+
+		if (scalar(@{$self->{files}}) > 0) {
+			# Compress files
+			$self->compressFiles();
+
+			# Copy files to backup location
+			$self->copyFiles();
+
+			# Transfer files to remote location
+			$self->transferFiles();
+
+			# Notify errors
+			$self->notify();
+
+			# Cleanup
+			$self->cleanup();
+
+			# Save status
+			$self->updateStatus();
+
+			# Finally, tell the total backupDir size
+			my $backupDir = $self->{config}->{paths}->{backupDir};
+			my $size = `du -hs "$backupDir"`;
+			chomp($size);
+			$self->{log}->info('Total Backup Size: '.$size);
+		} else {
+			$self->{log}->info('No backup was produced');
+		}
 	}
 
 	return 1;
@@ -82,36 +93,113 @@ sub backup {
 sub computeBackupType {
 	my $self = shift;
 
-	my @T    = @{$self->{timestamp}};
-	if ($T[2] != $self->{config}->{dailyBackupHour}) {
-		# not daily hour? - return hourly
-		$self->{backupType} = 'hourly';
-	} elsif ($T[3] == $self->{config}->{monthlyDay}) {
-		# 1st of month - monthly
-		$self->{backupType} = 'monthly';
-	} elsif ($T[6] == $self->{config}->{weeklyWeekday}) {
-		# Saturday - weekly
-		$self->{backupType} = 'weekly';
-	} else {
-		# ordinary day
-		$self->{backupType} = 'daily';
+	if (defined($self->{backupType})) {
+		if ($self->{backupType} eq 'mobile') {
+			$self->computeMobileBackupType();
+		}
+	} else {	
+		my @T    = @{$self->{timestamp}};
+		if ($T[2] != $self->{config}->{dailyBackupHour}) {
+			# not daily hour? - return hourly
+			$self->{backupType} = 'hourly';
+		} elsif ($T[3] == $self->{config}->{monthlyDay}) {
+			# 1st of month - monthly
+			$self->{backupType} = 'monthly';
+		} elsif ($T[6] == $self->{config}->{weeklyWeekday}) {
+			# Saturday - weekly
+			$self->{backupType} = 'weekly';
+		} else {
+			# ordinary day
+			$self->{backupType} = 'daily';
+		}
 	}
+}
+
+sub computeMobileBackupType {
+	my $self = shift;
+
+	my $T    = $self->{timestamp};
+	if (!$self->hasCurrentBackup('monthly', $self->getTimeString('monthly', $T), $self->{time})) {
+		# monthly backup
+		$self->{backupType} = 'monthly';
+	} elsif (!$self->hasCurrentBackup('weekly', $self->getTimeString('weekly', $T), $self->{time})) {
+		# weekly backup
+		$self->{backupType} = 'weekly';
+	} elsif (!$self->hasCurrentBackup('daily', $self->getTimeString('daily', $T), $self->{time})) {
+		# daily backup
+		$self->{backupType} = 'daily';
+	} elsif (!$self->hasCurrentBackup('hourly', $self->getTimeString('hourly', $T), $self->{time})) {
+		# hourly backup
+		$self->{backupType} = 'hourly';
+	} else {
+		$self->{backupType} = 'none';
+	}
+	$self->{log}->debug('Computed mobile backup: '.$self->{backupType});
+}
+
+sub hasCurrentBackup {
+	my $self       = shift;
+	my $type       = shift;
+	my $timestring = shift;
+	my $now        = shift;
+
+	$self->loadStatus() if !defined($self->{status});
+
+	if (defined($self->{status}->{$type}) && defined($self->{status}->{$type}->{$timestring})) {
+		# No backup when backup was not successful
+		my $success = $self->{status}->{$type}->{$timestring}->{success};
+		return 0 if !$success;
+
+		# Successful backup must be not from this time
+		my $time    = int($self->{status}->{$type}->{$timestring}->{time});
+		my $ts1 = $self->getAbsoluteTimeString($type, $now);
+		my $ts2 = $self->getAbsoluteTimeString($type, $time);
+		#$self->{log}->debug($type.': now='.$ts1.'('.$now.')   backup='.$ts2.'('.$time.')');
+		return 0 if $ts1 ne $ts2;
+		return 1;
+	}
+	return 0;
 }
 
 sub computeTimeString {
 	my $self = shift;
 	my $type = $self->{backupType};
-	my @T    = @{$self->{timestamp}};
+	my $T    = $self->{timestamp};
+
+	$self->{timestring} = $self->getTimeString($type, $T);
+}
+
+sub getTimeString {
+	my $self = shift;
+	my $type = shift;
+	my $t    = shift;
+	my @T    = @{$t};
 
 	if ($type eq 'hourly') {
-		$self->{timestring} = 'hour-'.$T[2];
+		return 'hour-'.$T[2];
 	} elsif ($type eq 'monthly') {
-		$self->{timestring} = $MONNAME[$T[4]];
+		return $MONNAME[$T[4]];
 	} elsif ($type eq 'weekly') {
-		$self->{timestring} = 'week-'.(`date +%V` % 4);
-	} else {
-		$self->{timestring} = $WEEKDAYS[$T[6]];
+		return 'week-'.(`date +%V` % 4);
 	}
+	return $WEEKDAYS[$T[6]];
+}
+
+sub getAbsoluteTimeString {
+	my $self = shift;
+	my $type = shift;
+	my $t    = shift;
+	my @T    = localtime($t);
+	
+	if ($type eq 'hourly') {
+		return sprintf('%04d%02d%02s%02d', $T[5]+1900, $T[4]+1, $T[3], $T[2]);
+	} elsif ($type eq 'daily') {
+		return sprintf('%04d%02d%02s', $T[5]+1900, $T[4]+1, $T[3]);
+	} elsif ($type eq 'weekly') {
+		return sprintf('%04d%02d', $T[5]+1900, int($T[7]/7));
+	}
+	# monthly
+	return sprintf('%04d%02d', $T[5]+1900, $T[4]+1);
 }
 
 sub checkDirectories {
@@ -350,6 +438,51 @@ sub getPrefixSize {
 	}
 
 	return $rc;
+}
+
+sub updateStatus {
+	my $self = shift;
+
+	$self->loadStatus() if !defined($self->{status});
+
+	delete($self->{status}->{$self->{backupType}}->{$self->{timestring}});
+	$self->{status}->{$self->{backupType}}->{$self->{timestring}} = {
+		'time' => int($self->{time}),
+		'success' => int(!$self->{error})
+	};
+
+	$self->saveStatus();
+}
+
+sub loadStatus {
+	my $self = shift;
+	my $dir  = $self->{config}->{paths}->{backupDir};
+	my $file = $dir.'/status.json';
+	my $json;
+
+	if (open(CFGIN, "<$file")) {
+		local $/= undef;
+		$json = <CFGIN>;
+		close(CFGIN);
+		$self->{status} = parse_json($json);
+	} else {
+		$self->{status} = {};
+	}
+}
+
+sub saveStatus {
+	my $self = shift;
+	my $dir  = $self->{config}->{paths}->{backupDir};
+	my $file = $dir.'/status.json';
+	my $json;
+
+	if (!$self->{config}->{dryRun}) {
+		$self->mkDirs($dir);
+		if (open(CFGOUT, ">$file")) {
+			print CFGOUT encode_json($self->{status});
+		}
+		close(CFGOUT);
+	}
 }
 
 1;

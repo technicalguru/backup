@@ -28,7 +28,7 @@ GetOptions(
 if ($help) {
 	showHelp(0);
 }
-if (@ARGV || ($backupType && !grep(/^$backupType$/, ('hourly', 'daily', 'weekly', 'monthly')))) {
+if (@ARGV || ($backupType && !grep(/^$backupType$/, ('hourly', 'daily', 'weekly', 'monthly', 'mobile')))) {
 	showHelp(1);
 }
 
@@ -87,7 +87,7 @@ For a complete description of /etc/backup/main.json, please visit https://github
 
 Print this help message
 
-=item B<--type=(hourly|daily|weekly|monthly)>
+=item B<--type=(hourly|daily|weekly|monthly|mobile)>
 
 Type of backup to perform. The type will be set automatically when the option is missing.
 

@@ -419,6 +419,35 @@ your host. It will also need an SSH identity file to connect to the remote site 
 | rootDir | string | The remote path where the backups shall be stored at the server |
 | host | string | The hostname of the remote server |
 
+# Transfer Module Rsync
+
+## Description
+
+This module transfers backup files to remote destinations using rsync. It requires rsync to be installed on
+your host. It will also need an SSH identity file to connect to the remote site to avoid password-based authentication.
+
+## Configuration
+
+```json
+	"transfer"      : {
+		"name"      : "MyRsync",
+		"enabled"   : true,
+		"module"    : "Backup::Transfer::Rsync",
+		"rsync"     : "/usr/bin/rsync",
+		"rsyncopts" : "-e 'ssh -i /path/to/id_rsa'",
+		"username"  : "my-remote-user",
+		"rootDir"   : "/remote/root/path",
+		"hostname"  : "remote.server.de"
+	}
+```
+
+| Name | Value | Description |
+| ---- | ----- | ----------- |
+| rsync | string | The path to the rsync binary, usually at ```/usr/bin/ssh``` |
+| rsyncopts | string | Options to pass to rsync in order to configure connection. You shall always include --e option |
+| username | string | The remote login name |
+| rootDir | string | The remote path where the backups shall be stored at the server |
+
 # Notification Module Email
 
 ## Description

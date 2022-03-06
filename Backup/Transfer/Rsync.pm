@@ -23,18 +23,17 @@ sub transfer {
 	my $cmd = $rsync.' -a --delete '.$localDir.'/'.' '.$remote;
 	my $rc  = 0;
 	if (!$self->{config}->{dryRun}) {
-		$self->{log}->info($cmd);
-		#$rc = $self->{executor}->execute($cmd);
-		#$rc = $rc >> 8;
+		$self->{log}->debug($cmd);
+		$rc = $self->{executor}->execute($cmd);
+		$rc = $rc >> 8;
 	} else {
 		$self->{log}->info($cmd);
 	}
 	if ($rc) {
-		$self->{log}->error('Error on '.$file.'. See '.$self->{executor}->{logfile});
+		$self->{log}->error('Error on rsync See '.$self->{executor}->{logfile});
 		$self->{error} = 1;
 	} else {
-		$self->{log}->debug('Transferred: '.$file);
-		$count++;
+		$self->{log}->debug('Transferred: '.scalar(@{$files}).' file(s)');
 	}
 
 	#$self->{log}->info(scalar($files).' files transferred');

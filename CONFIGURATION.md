@@ -191,15 +191,17 @@ daily backups. Weekly and monthly backups will use the daily configuration.
 ```json
 	"modules" : {
 		"MySQLBackup"      : {
-			"module"    : "Backup::Module::MySql",
-			"enabled"   : true,
-			"mysql"     : "/usr/bin/mysql",
-			"mysqldump" : "/usr/bin/mysqldump",
-			"username"  : "mysql-user",
-			"password"  : "mysql-password",
-			"hostname"  : "mysql-host",
-			"hourly"    : [ ],
-			"daily"     : [ ]
+B
+			"module"        : "Backup::Module::MySql",
+			"enabled"       : true,
+			"mysql"         : "/usr/bin/mysql",
+			"mysqldump"     : "/usr/bin/mysqldump",
+			"mysqldumpopts" : "--column-statistics=0",
+			"username"      : "mysql-user",
+			"password"      : "mysql-password",
+			"hostname"      : "mysql-host",
+			"hourly"        : [ ],
+			"daily"         : [ ]
 		},
 	}
 ```
@@ -208,6 +210,7 @@ daily backups. Weekly and monthly backups will use the daily configuration.
 | ---- | ----- | ----------- |
 | mysql | string | The path of the mysql client binary, usually at ```/usr/bin/mysql``` |
 | mysqldump | string | The path of the mysqldump binary, usually at ```/usr/bin/mysqldump``` |
+| mysqldumpopts | string | Options to be passed additionally to mysqldump, e.g. for specifics |
 | username | string | The login user at MySQL to be used |
 | password| string | The password to be used at MySQL |
 | hostname | string | The MySQL hostname, usually ```localhost``` or ```127.0.0.1``` |

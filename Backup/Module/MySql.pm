@@ -50,9 +50,11 @@ sub exportDatabase {
 	my $dbname = shift;
 
 	my $dumpfile = tmpnam().'.sql';
+	my $mysqldumpopts = $self->{config}->{mysqldumpopts};
 	my $cmd = $self->{config}->{mysqldump}.
 			" \"--user=".$self->{config}->{username}."\"".
-			" \"--password=".$self->{config}->{password}."\"".
+			" \"--password=".$self->{config}->{password}."\" ".
+			$mysqldumpopts.' '.
 			" --host=".$self->{config}->{hostname}.
 			" --quote-names".
 			" --skip-lock-tables".

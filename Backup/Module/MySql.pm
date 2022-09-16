@@ -15,26 +15,34 @@ sub new {
 }
 
 sub backup {
-	my $self = shift;
-	my $type = shift;
-	my @RC = ();
-
+	my $self  = shift;
+	my $type  = shift;
+	my @RC    = ();
+	my $count = 0;
+	
 	# which databases?
-	my @DATABASES = $self->getDatabases($type);
-	if (scalar(@DATABASES) > 0) {
-		# dump the databases
-		my $dbname;
-		my $count = 0;
-		foreach $dbname (@DATABASES) {
-			my $file = $self->exportDatabase($dbname);
-			if ($file) {
-				$self->{log}->debug('Exporting database '.$dbname.'...done');
-				push(@RC, {'name' => $dbname, 'filename' => $file, 'needsCompression' => 1});
-				$count++;
-			} else {
-				$self->{log}->error('Exporting database '.$dbname.'...failed');
-				$self->{log}->error('   See '.$self->{executor}->{logfile});
-				$self->{error} = 1;
+	my $INSTANCES = $self->getInstances($type);
+	if (scalar(keys(%{$INSTANCES})) > 0) {
+		my $name;
+		foreach $name (keys(%{$INSTANCES})) {
+			# Which databases do we need to export?
+			my $instance = $INSTANCES->{$name};
+			# Make sure all information is present
+			$instance->{hostname} = 'localhost' if !defined($instance->{hostname});
+			$instance->{port}     = 3306        if !defined($instance->{port});
+			my @SCHEMAS = $self->getSchemas($instance, $type);
+			my $schema;
+			foreach $schema (@SCHEMAS) {
+				my $tmpfile = $self->exportDatabase($instance, $schema);
+				if ($tmpfile) {
+					$self->{log}->debug('Exporting database '.$name.'/'.$schema.'...done');
+					push(@RC, {'name' => $name.'/'.$schema, 'filename' => $tmpfile, 'needsCompression' => 1});
+					$count++;
+				} else {
+					$self->{log}->error('Exporting database '.$name.'/'.$schema.'...failed');
+					$self->{log}->error('   See '.$self->{executor}->{logfile});
+					$self->{error} = 1;
+				}
 			}
 		}
 		$self->{log}->info($count.' databases exported');
@@ -46,20 +54,22 @@ sub backup {
 }
 
 sub exportDatabase {
-	my $self   = shift;
-	my $dbname = shift;
+	my $self     = shift;
+	my $instance = shift;
+	my $schema   = shift;
 
 	my $dumpfile = tmpnam().'.sql';
-	my $mysqldumpopts = $self->{config}->{mysqldumpopts};
+	my $mysqldumpopts = defined($self->{config}->{mysqldumpopts}) ? $self->{config}->{mysqldumpopts} : '';
 	my $cmd = $self->{config}->{mysqldump}.
-			" \"--user=".$self->{config}->{username}."\"".
-			" \"--password=".$self->{config}->{password}."\" ".
+			" --host=".$instance->{hostname}.
+			" --port=".$instance->{port}.
+			" \"--user=".$instance->{username}."\"".
+			" \"--password=".$instance->{password}."\" ".
 			$mysqldumpopts.' '.
-			" --host=".$self->{config}->{hostname}.
 			" --quote-names".
 			" --skip-lock-tables".
 			" --opt".
-			" --databases $dbname \"--result-file=$dumpfile\"";
+			" --databases $schema \"--result-file=$dumpfile\"";
 	my $rc = 0;
 	if (!$self->{config}->{dryRun}) {
 		$rc = $self->{executor}->execute($cmd);
@@ -69,25 +79,56 @@ sub exportDatabase {
 	return 0;
 }
 
-sub getDatabases {
+# This shall return now objects of MySqlInstance
+sub getInstances {
 	my $self = shift;
 	my $type = shift;
-	my @RC = ();
+	my %RC = ();
+	my $name;
 
 	# hourly backups defined?
 	if ($type eq 'hourly') {
-		return @{$self->{config}->{hourly}};
+		foreach $name (keys(%{$self->{config}->{instances}})) {
+			my $instance = $self->{config}->{instances}->{$name};
+			if (defined($instance->{hourly}) && (scalar(@{$instance->{hourly}}) > 0)) {
+				$RC{$name} = $instance;
+			}
+		}
+		return \%RC;
 	}
 
-	# only selected databases?
-	if (defined($self->{config}->{daily}) && (scalar(@{$self->{config}->{daily}}) > 0)) {
-		return @{$self->{config}->{daily}};
+	# only selected databases on daily base?
+	foreach $name (keys(%{$self->{config}->{instances}})) {
+		my $instance = $self->{config}->{instances}->{$name};
+		if (!defined($instance->{daily}) || (scalar(@{$instance->{daily}}) > 0)) {
+			$RC{$name} = $instance;
+		}
 	}
 
-	# get all databases
-	my $cmd = $self->{config}->{mysql}." \"--user=".$self->{config}->{username}."\"".
-		" \"--password=".$self->{config}->{password}."\"".
-		" --host=".$self->{config}->{hostname}.
+	return \%RC;
+}
+
+sub getSchemas {
+	my $self     = shift;
+	my $instance = shift;
+	my $type     = shift;
+	my @RC;
+
+	if ($type eq 'hourly') {
+		if (defined($instance->{hourly}) && (scalar(@{$instance->{hourly}}) > 0)) {
+			return @{$instance->{hourly}};
+		}
+	}
+
+	if (defined($instance->{daily}) && (scalar(@{$instance->{daily}}) > 0)) {
+		return @{$instance->{daily}};
+	}
+
+	# otherwise return all instances defined
+	my $cmd = $self->{config}->{mysql}." \"--user=".$instance->{username}."\"".
+		" \"--password=".$instance->{password}."\"".
+		" --host=".$instance->{hostname}.
+		" --port=".$instance->{port}.
 		" --batch".
 		" --skip-column-names -e \"show databases\"";
 	$self->{executor}->{log}->info($cmd);
@@ -97,6 +138,7 @@ sub getDatabases {
 			my $line = $_;
 			next if $line eq 'information_schema';
 			next if $line eq 'performance_schema';
+			next if $line eq 'sys';
 			push(@RC, $line);
 		}
 		close(FIN);

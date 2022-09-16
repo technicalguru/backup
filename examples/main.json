@@ -13,11 +13,16 @@
 			"enabled"   : true,
 			"mysql"     : "/usr/bin/mysql",
 			"mysqldump" : "/usr/bin/mysqldump",
-			"username"  : "my-user",
-			"password"  : "my-password",
-			"hostname"  : "localhost",
-			"hourly"    : [ ],
-			"daily"     : [ ]
+			"instances" : {
+				"localhost": {
+					"hostname"  : "localhost",
+					"port"      : 3306,
+					"username"  : "my-user",
+					"password"  : "my-password",
+					"hourly"    : [ ],
+					"daily"     : [ ]
+				}
+			}
 		},
 		"Kubernetes" : {
 			"module"    : "Backup::Module::Kubernetes",

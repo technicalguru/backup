@@ -13,7 +13,7 @@ Features:
 * Comes with modules for:
   * Filesystem backups
   * MySQL database backups
-  * MySQL database backups from Kubernetes pods
+  * MySQL database backups from Kubernetes services
   * MySQL database backups from Docker containers
   * FTP transfer to remote backup location
   * SCP transfer to remote backup location

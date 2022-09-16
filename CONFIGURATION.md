@@ -191,17 +191,21 @@ daily backups. Weekly and monthly backups will use the daily configuration.
 ```json
 	"modules" : {
 		"MySQLBackup"      : {
-B
 			"module"        : "Backup::Module::MySql",
 			"enabled"       : true,
 			"mysql"         : "/usr/bin/mysql",
 			"mysqldump"     : "/usr/bin/mysqldump",
 			"mysqldumpopts" : "--column-statistics=0",
-			"username"      : "mysql-user",
-			"password"      : "mysql-password",
-			"hostname"      : "mysql-host",
-			"hourly"        : [ ],
-			"daily"         : [ ]
+			"instances"     : {
+				"instance-name" : {
+					"hostname" : "mysql-host",
+					"port"     : 3306,
+					"username" : "mysql-user",
+					"password" : "mysql-password"
+					"hourly"   : [ ],
+					"daily"    : [ ]
+				}
+			}
 		},
 	}
 ```
@@ -211,11 +215,13 @@ B
 | mysql | string | The path of the mysql client binary, usually at ```/usr/bin/mysql``` |
 | mysqldump | string | The path of the mysqldump binary, usually at ```/usr/bin/mysqldump``` |
 | mysqldumpopts | string | Options to be passed additionally to mysqldump, e.g. for specifics |
+| instances | object | Definition of instances to backup with a logical name, you can give multiple instances with different names |
+| hostname | string | The MySQL hostname, usually ```localhost``` or ```127.0.0.1``` (Default: localhost) |
+| port | number | The port number on the MySQL host, usually ```3306``` (Default: 3306) |
 | username | string | The login user at MySQL to be used |
 | password| string | The password to be used at MySQL |
-| hostname | string | The MySQL hostname, usually ```localhost``` or ```127.0.0.1``` |
 | hourly | list of strings | The schemas to backup at each hour. An empty list will not perform an hourly backup. |
-| daily | list of strings | The schemas to backup at daily, weekly and monthly backups. An empty list will backup all schemas inside the database instance |
+| daily | list of strings | The schemas to backup at daily, weekly and monthly backups. An empty list will backup all schemas of that instance |
 
 # Kubernetes Modules
 

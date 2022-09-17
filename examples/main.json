@@ -28,12 +28,16 @@
 			"module"    : "Backup::Module::Kubernetes",
 			"enabled"   : true,
 			"kubectl"   : "/usr/bin/kubectl",
+			"kubeconfig": "/root/.kube/config",
 			"modules"   : {
 				"MySQL" : {
-					"enabled"   : true,
-					"module"    : "Backup::Module::Kubernetes::MySql",
-					"hourly"    : [ ],
-					"daily"     : [ ]
+					"enabled"       : true,
+					"module"        : "Backup::Module::Kubernetes::MySqlAutoDiscover",
+					"serviceLabels" : {
+						"technicalguru/backup-class": "mariadb"
+					},
+					"username"  : "root",
+					"password"  : "password"
 				}
 			}
 		},

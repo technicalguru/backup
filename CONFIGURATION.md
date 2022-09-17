@@ -255,7 +255,7 @@ This configuration is alike the main backup script.
 | kubectl | string | The path of the Kubernetes kubectl binary, usually at ```/usr/bin/kubectl``` |
 | modules | object | The definition of the sub-modules (see subsequent sections) |
 
-## Kubernetes MySQL Module
+## Kubernetes MySQL Module (Deprecated, use MySqlAutoDiscover)
 
 This module connects to a running MySQL container inside Kubernetes and performs a 
 mysqldump. This module will auto-discover all containers that derive from the official
@@ -282,6 +282,39 @@ mysql DockerHub image.
 | daily | list of strings | The container names to backup at daily, weekly and monthly backups. An empty list will backup all containers. |
 
 **Note** The naming scheme for the container names is currently under development. It is advisable to use an empty list at the moment.
+
+## Kubernetes MySqlAutoDiscover Module
+
+This module uses the Kubernetes API to find services matching a defined set of labels. As databases are usually accessed through services
+this is the better approach to find databases. The module then exports each service using Kubernetes Jobs.
+
+```json
+	"modules" : {
+				"MySQL" : {
+					"enabled"       : true,
+					"module"        : "Backup::Module::Kubernetes::MySqlAutoDiscover",
+					"serviceLabels" : {
+						"technicalguru/backup-class": "mariadb"
+					},
+					"username"  : "root",
+					"password"  : "password"
+				}
+			}
+		}
+	}
+```
+
+| Name | Value | Description |
+| ---- | ----- | ----------- |
+| serviceLabels | list of string-value pairs | The labels that a service has to match in order to be included in the backup. |
+| username | string | The backup user to be used on all services |
+| password | string | the password on all services for the backup user |
+
+You can refine the schemas to be included in diefferent backup types by using additional labels:
+| Label | Value | Description |
+| ---- | ----- | ----------- |
+| technicalguru/backup-hourly | string | The schema names (comma-separated) to backup at each hour. An empty list or missing label will not perform an hourly backup. |
+| technicalguru/backup-daily | string | The schema names (comma-separated) to backup at daily, weekly and monthly backups. An empty list or missing label will backup all schemas. |
 
 # Docker Module
 

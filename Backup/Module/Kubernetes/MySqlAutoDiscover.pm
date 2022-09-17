@@ -38,7 +38,7 @@ sub backup {
 				$todo++;
 				my $tmpfile = $self->exportDatabase($svc, $schema);
 				if ($tmpfile) {
-					my $size = -s $tmpfile;
+					my $size = -e $tmpfile ? -s $tmpfile : 0;
 					# We directly out this one as it can last a while
 					$self->{log}->info('Exporting database '.$name.'/'.$schema.'...done ('.$self->formatSize($size).' Bytes)');
 					push(@RC, {'name' => $name.'/'.$schema, 'filename' => $tmpfile, 'needsCompression' => 1});

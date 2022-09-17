@@ -106,7 +106,7 @@ sub invokeKubectl {
 	my $config  = defined($self->{config}->{'kubeconfig'}) ? ' --kubeconfig='.$self->{config}->{'kubeconfig'}.' ' : '';
 	my $cmd     = $self->{config}->{'kubectl'}.' '.$config.$command;
 	$cmd .= ' -o json' if ($type eq 'json');
-	$self->{log}->debug($cmd);
+	#$self->{log}->debug($cmd);
 
 	my $content = '';
 	if (open(FIN, "$cmd 2>>/var/log/backup/KUBECTL-ERRORS.log|")) {

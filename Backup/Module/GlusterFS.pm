@@ -62,7 +62,7 @@ sub backup {
 
 		# Each filesystem separately
 		my $fsname;
-		foreach $fsname (keys(%{$FS})) {
+		foreach $fsname (sort(keys(%{$FS}))) {
 			my $fsdir = $FS->{$fsname};
 
 			# get the temporary file

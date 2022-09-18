@@ -1,3 +1,0 @@
-# Docker/Kubernetes: Immer alle MySQL container listen im DEBUG (skipping/done)
-# Namensschema folgt dann dem Output-Namen aus Docker/Kubernetes
-

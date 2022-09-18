@@ -1,6 +1,7 @@
 package Backup::Module::Kubernetes;
 #use strict;
 use Backup::Log;
+use JSON::Parse 'parse_json';
 use File::Temp qw/ :POSIX /;
 
 sub new {
@@ -93,6 +94,36 @@ sub getContainerInfos {
 	}
 
 	return $rc;
+}
+
+sub invokeKubectl {
+	my $self    = shift;
+	my $command = shift;
+	my $type    = shift;
+
+	$type = 'json' if (!defined($type));
+
+	my $config  = defined($self->{config}->{'kubeconfig'}) ? ' --kubeconfig='.$self->{config}->{'kubeconfig'}.' ' : '';
+	my $cmd     = $self->{config}->{'kubectl'}.' '.$config.$command;
+	$cmd .= ' -o json' if ($type eq 'json');
+	#$self->{log}->info($cmd);
+
+	my $content = '';
+	if (open(FIN, "$cmd 2>>/var/log/backup/KUBECTL-ERRORS.log|")) {
+        local $/= undef;
+		$content = <FIN>;
+		chomp $content;
+		close(FIN);
+	}
+	return undef if $?;
+
+	#print $json;
+	if ($type eq 'json') {
+		return parse_json($content);
+	} elsif ($type eq 'lines') {
+		return split(/\r?\n/, $content);
+	}
+	return $content;
 }
 
 1;

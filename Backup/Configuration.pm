@@ -21,12 +21,16 @@ sub new {
 sub load {
 	my $self = shift;
 	my $json = '{}';
-	if (open(FIN, "<$CONFIG_FILE")) {
+	my $config = $CONFIG_FILE;
+	$config = $self->{configFile} if defined($self->{configFile});
+
+	$self->{log}->info('Configuration file: '.$config);
+	if (open(FIN, "<$config")) {
 		local $/= undef;
 		$json = <FIN>;
 		close(FIN);
 	} else {
-		$self->{log}->error('Cannot read file: '.$CONFIG_FILE);
+		$self->{log}->error('Cannot read file: '.$config);
 		$self->{error} = 1;
 	}
 	$self->{config} = parse_json($json);

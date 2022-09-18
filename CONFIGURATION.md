@@ -176,6 +176,45 @@ incrementally since last full backup.
 | hourly | list of strings | The path names to backup at each hour |
 | daily | list of strings | The path names to backup at daily, weekly and monthly backups (hourly paths shall be included here) |
 
+# GlusterFS Module
+
+## Description
+
+This module performs a TAR-based gluster volume backup. All backups will be full backups of
+the specified volumes except daily or hourly backups. These daily and hourly backups are performed 
+incrementally since last full backup.
+
+## Configuration
+
+```json
+	"modules" : {
+		"myGlusterBackup" : {
+			"module"        : "Perl::Module::GlusterFS",
+			"enabled"       : true,
+			"mountPath"     : "/mnt/backup",
+			"timestampFile" : "/var/backup/myGlusterBackup/LastFullBackup.timestamp",
+			"tar"           : "/bin/tar",
+			"taropts"       : "--exclude-from=/etc/backup/exclude-files-from-backup",
+			"hourly"        : { },
+			"daily"         : { 
+				"myVolume1": "gluster-server.domain.com:/glusterpath1",
+				"myVolume2": "gluster-server.domain.com:/glusterpath2"
+			}
+		}
+	}
+```
+
+| Name | Value | Description |
+| ---- | ----- | ----------- |
+| mountPath | string | the local path to use for mounting the volumes (Default: /mnt/backup) |
+| timestampFile | string | The path of the file where the module can save the timestamp of its last full backup (required for incremental backups) |
+| tar | string | The path of the TAR binary, usually at ```/bin/tar``` |
+| taropts | string | Additional options for TAR, e.g. exclude file |
+| hourly | map of paths | A map of names to GlusterFS URLs to backup at each hour |
+| daily | map of paths | A map of names to GlusterFS URLs to backup at daily, weekly and monthly backups (hourly paths shall be included here) |
+
+Please notice that the path maps define a logical name for the volume that later can be found in the backup.
+
 # MySQL Module
 
 ## Description
@@ -191,17 +230,21 @@ daily backups. Weekly and monthly backups will use the daily configuration.
 ```json
 	"modules" : {
 		"MySQLBackup"      : {
-B
 			"module"        : "Backup::Module::MySql",
 			"enabled"       : true,
 			"mysql"         : "/usr/bin/mysql",
 			"mysqldump"     : "/usr/bin/mysqldump",
 			"mysqldumpopts" : "--column-statistics=0",
-			"username"      : "mysql-user",
-			"password"      : "mysql-password",
-			"hostname"      : "mysql-host",
-			"hourly"        : [ ],
-			"daily"         : [ ]
+			"instances"     : {
+				"instance-name" : {
+					"hostname" : "mysql-host",
+					"port"     : 3306,
+					"username" : "mysql-user",
+					"password" : "mysql-password"
+					"hourly"   : [ ],
+					"daily"    : [ ]
+				}
+			}
 		},
 	}
 ```
@@ -211,11 +254,13 @@ B
 | mysql | string | The path of the mysql client binary, usually at ```/usr/bin/mysql``` |
 | mysqldump | string | The path of the mysqldump binary, usually at ```/usr/bin/mysqldump``` |
 | mysqldumpopts | string | Options to be passed additionally to mysqldump, e.g. for specifics |
+| instances | object | Definition of instances to backup with a logical name, you can give multiple instances with different names |
+| hostname | string | The MySQL hostname, usually ```localhost``` or ```127.0.0.1``` (Default: localhost) |
+| port | number | The port number on the MySQL host, usually ```3306``` (Default: 3306) |
 | username | string | The login user at MySQL to be used |
 | password| string | The password to be used at MySQL |
-| hostname | string | The MySQL hostname, usually ```localhost``` or ```127.0.0.1``` |
 | hourly | list of strings | The schemas to backup at each hour. An empty list will not perform an hourly backup. |
-| daily | list of strings | The schemas to backup at daily, weekly and monthly backups. An empty list will backup all schemas inside the database instance |
+| daily | list of strings | The schemas to backup at daily, weekly and monthly backups. An empty list will backup all schemas of that instance |
 
 # Kubernetes Modules
 
@@ -249,7 +294,7 @@ This configuration is alike the main backup script.
 | kubectl | string | The path of the Kubernetes kubectl binary, usually at ```/usr/bin/kubectl``` |
 | modules | object | The definition of the sub-modules (see subsequent sections) |
 
-## Kubernetes MySQL Module
+## Kubernetes MySQL Module (Deprecated, use MySqlAutoDiscover)
 
 This module connects to a running MySQL container inside Kubernetes and performs a 
 mysqldump. This module will auto-discover all containers that derive from the official
@@ -276,6 +321,42 @@ mysql DockerHub image.
 | daily | list of strings | The container names to backup at daily, weekly and monthly backups. An empty list will backup all containers. |
 
 **Note** The naming scheme for the container names is currently under development. It is advisable to use an empty list at the moment.
+
+## Kubernetes MySqlAutoDiscover Module
+
+This module uses the Kubernetes API to find services matching a defined set of labels. As databases are usually accessed through services
+this is the better approach to find databases and export. 
+
+```json
+	"modules" : {
+				"MySQL" : {
+					"enabled"       : true,
+					"module"        : "Backup::Module::Kubernetes::MySqlAutoDiscover",
+					"serviceLabels" : {
+						"technicalguru/backup-class": "mariadb"
+					},
+					"username"  : "root",
+					"password"  : "password"
+				}
+			}
+		}
+	}
+```
+
+| Name | Value | Description |
+| ---- | ----- | ----------- |
+| serviceLabels | list of string-value pairs | The labels that a service has to match in order to be included in the backup. |
+| username | string | The backup user to be used on all services |
+| password | string | the password on all services for the backup user |
+
+Please use another logical module section when your backup users and passwords differ. You need to adjust the selecting labels then.
+
+You can refine the schemas to be included in different backup types by using additional labels:
+
+| Label | Value | Description |
+| ---- | ----- | ----------- |
+| technicalguru/backup-hourly | string | The schema names (comma-separated) to backup at each hour. An empty list or missing label will not perform an hourly backup. |
+| technicalguru/backup-daily | string | The schema names (comma-separated) to backup at daily, weekly and monthly backups. An empty list or missing label will backup all schemas. |
 
 # Docker Module
 

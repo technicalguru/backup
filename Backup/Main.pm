@@ -340,6 +340,9 @@ sub copyFiles {
 			if ($backupDesc->{noSubDir}) {
 				$targetDir  = $backupDesc->{module};
 			}
+			if ($backupDesc->{targetDir}) {
+				$targetDir .= '/'.$backupDesc->{targetDir};
+			}
 			$targetName    =~ s#^.*/##;
 			$fileext       =~ s/^[^\.]+//;
 			$filename      = $targetName.'-'.$self->{timestring}.$fileext;

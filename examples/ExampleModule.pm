@@ -33,8 +33,10 @@ sub backup {
 		# Return value:
 		#    'name'             the name of the backup 
 		#    'filename'         the file that contains the backup (temporary file, will be deleted)
+		#    'noSubDir'         1 when any sub directory in backup paths shall be flattened (Default: 0)
+		#    'targetDir'        a sub directory structure to be used before appending the sub structure and path (optional)
 		#    'needsCompression' whether a compression shall be run on the file
-		push(@RC, {'name' => 'hello-world', 'filename' => $file, 'needsCompression' => 1});
+		push(@RC, {'name' => 'hello-world', 'filename' => $file, 'targetDir' => 'my-structure', 'noSubDir' => 1, 'needsCompression' => 1});
 	}
 
 	# Return all backup file descriptions produced

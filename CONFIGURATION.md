@@ -176,6 +176,45 @@ incrementally since last full backup.
 | hourly | list of strings | The path names to backup at each hour |
 | daily | list of strings | The path names to backup at daily, weekly and monthly backups (hourly paths shall be included here) |
 
+# GlusterFS Module
+
+## Description
+
+This module performs a TAR-based gluster volume backup. All backups will be full backups of
+the specified volumes except daily or hourly backups. These daily and hourly backups are performed 
+incrementally since last full backup.
+
+## Configuration
+
+```json
+	"modules" : {
+		"myGlusterBackup" : {
+			"module"        : "Perl::Module::GlusterFS",
+			"enabled"       : true,
+			"mountPath"     : "/mnt/backup",
+			"timestampFile" : "/var/backup/myGlusterBackup/LastFullBackup.timestamp",
+			"tar"           : "/bin/tar",
+			"taropts"       : "--exclude-from=/etc/backup/exclude-files-from-backup",
+			"hourly"        : { },
+			"daily"         : { 
+				"myVolume1": "gluster-server.domain.com:/glusterpath1",
+				"myVolume2": "gluster-server.domain.com:/glusterpath2"
+			}
+		}
+	}
+```
+
+| Name | Value | Description |
+| ---- | ----- | ----------- |
+| mountPath | string | the local path to use for mounting the volumes (Default: /mnt/backup) |
+| timestampFile | string | The path of the file where the module can save the timestamp of its last full backup (required for incremental backups) |
+| tar | string | The path of the TAR binary, usually at ```/bin/tar``` |
+| taropts | string | Additional options for TAR, e.g. exclude file |
+| hourly | map of paths | A map of names to GlusterFS URLs to backup at each hour |
+| daily | map of paths | A map of names to GlusterFS URLs to backup at daily, weekly and monthly backups (hourly paths shall be included here) |
+
+Please notice that the path maps define a logical name for the volume that later can be found in the backup.
+
 # MySQL Module
 
 ## Description

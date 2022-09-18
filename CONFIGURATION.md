@@ -286,7 +286,7 @@ mysql DockerHub image.
 ## Kubernetes MySqlAutoDiscover Module
 
 This module uses the Kubernetes API to find services matching a defined set of labels. As databases are usually accessed through services
-this is the better approach to find databases. The module then exports each service using Kubernetes Jobs.
+this is the better approach to find databases and export. 
 
 ```json
 	"modules" : {
@@ -310,7 +310,10 @@ this is the better approach to find databases. The module then exports each serv
 | username | string | The backup user to be used on all services |
 | password | string | the password on all services for the backup user |
 
-You can refine the schemas to be included in diefferent backup types by using additional labels:
+Please use another logical module section when your backup users and passwords differ. You need to adjust the selecting labels then.
+
+You can refine the schemas to be included in different backup types by using additional labels:
+
 | Label | Value | Description |
 | ---- | ----- | ----------- |
 | technicalguru/backup-hourly | string | The schema names (comma-separated) to backup at each hour. An empty list or missing label will not perform an hourly backup. |

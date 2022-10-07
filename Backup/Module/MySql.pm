@@ -138,6 +138,7 @@ sub getSchemas {
 			my $line = $_;
 			next if $line eq 'information_schema';
 			next if $line eq 'performance_schema';
+			next if $line eq 'mysql';
 			next if $line eq 'sys';
 			push(@RC, $line);
 		}

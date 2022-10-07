@@ -1,5 +1,6 @@
 package Backup::Module::Kubernetes::MySqlAutoDiscover;
 use strict;
+use JSON;
 use File::Temp qw/ :POSIX /;
 use Number::Format 'format_number';
 
@@ -8,6 +9,8 @@ sub new {
 	my $self = \%args;
 	bless $self, $class;
 	$self->{error} = 0;
+	$self->{backupPodStarted} = 0;
+	$self->{backupPodName} = 'mysql-backup-'.time();
 	return $self;
 }
 
@@ -56,6 +59,8 @@ sub backup {
 	} elsif ($todo == 0) {
 		$self->{log}->info('Nothing to do');
 	}
+	$self->stopMysqlPod();
+
 	return @RC;
 }
 
@@ -73,14 +78,17 @@ sub getSchemas {
 		return @RC;
 	}
 
-	if (defined($svc->{metadata}->{labels}->{"technicalguru/backup-dailly"})) {
-		@RC = $self->splitSchemaList($svc->{metadata}->{labels}->{"technicalguru/backup-dailly"});
+	if (defined($svc->{metadata}->{labels}->{"technicalguru/backup-daily"})) {
+		@RC = $self->splitSchemaList($svc->{metadata}->{labels}->{"technicalguru/backup-daily"});
 		return @RC if scalar(@RC);
 	}
 
+	# Make sure the backup pod is running
+	return () if ! ($self->runMysqlPod());
+
 	# otherwise return all instances defined
-	my $podName  = $self->getPodName($svc->{metadata}->{name}.'-backup');
-	my $cmd = "run $podName -n ".$svc->{metadata}->{namespace}." -ti --image=mariadb --restart=Never --rm -- bash -c \"sleep 3 \&\& ".
+	my $podName  = $self->{backupPodName};
+	my $cmd = "exec $podName -n default --stdin -- bash -c \"".
 		"mysql ".
 		" --user=".$self->{config}->{username}.
 		" --password=".$self->{config}->{password}.
@@ -89,14 +97,16 @@ sub getSchemas {
 		" --batch".
 		" --skip-column-names -e \\\"show databases\\\"".
 		"\"";
+	$self->{log}->debug($cmd);
 	my @LINES = $self->{main}->invokeKubectl($cmd, 'lines');
-	if (!defined(scalar(@LINES))) {
+#	if (!defined(@LINES) || !scalar(@LINES)) {
 #		$self->{log}->error("Cannot retrieve database list");
 #		return ();
-	}
+#	}
 
 	my $line;
 	foreach $line (@LINES) {
+		next if !$line;
 		next if $line eq 'information_schema';
 		next if $line eq 'performance_schema';
 		next if $line eq 'mysql';
@@ -125,10 +135,13 @@ sub exportDatabase {
 	my $svc    = shift;
 	my $schema = shift;
 
+	# Make sure the backup pod is running
+	return 0 if !($self->runMysqlPod());
+
 	my $dumpfile      = tmpnam().'.sql';
-	my $podName       = $self->getPodName($svc->{metadata}->{name}.'-backup');
 	my $mysqldumpopts = defined($self->{config}->{mysqldumpopts}) ? $self->{config}->{mysqldumpopts} : '';
-	my $cmd           = "run $podName -n ".$svc->{metadata}->{namespace}." -ti --image=mariadb --restart=Never --rm -- bash -c \"sleep 3 \&\& ".
+	my $podName       = $self->{backupPodName};
+	my $cmd           = "exec $podName -n default --stdin -- bash -c \"".
 		"mysqldump".
 		" --user=".$self->{config}->{username}.
 		" --password=".$self->{config}->{password}.
@@ -182,6 +195,61 @@ sub formatSize {
 
 	return format_number($bytes);
 }
+
+# Make sure the backup pod is running
+sub runMysqlPod {
+	my $self = shift;
+
+	if (!$self->{backupPodStarted}) {
+		my $podName  = $self->{backupPodName};
+		my $cmd = "run $podName -n default --image=mariadb --restart=Never -- bash -c \"while [ ! -f /tmp/backupEnded ]; do sleep 1; done; \"";
+		$self->{log}->info("Starting backup pod $podName...");
+		$self->{main}->invokeKubectl($cmd, 'lines');
+
+		# We need to wait until the pod is ready
+		$cmd = "get pod $podName -n default -o json";
+		my $running   = 0;
+		my $startTime = time();
+		while (!$running) {
+			my $rc = $self->{main}->invokeKubectl($cmd, 'json');
+			my $status;
+			foreach $status (@{$rc->{status}->{conditions}}) {
+				if ($status->{type} eq 'Ready') {
+					$running = $status->{status} eq 'True';
+				}
+			}
+			if (!$running) {
+				if (time() - $startTime > 45) {
+					$self->{log}->error("Backup pod cannot be started");
+					$self->{error} = 1;
+					return 0;
+				}
+				sleep(1);
+			}
+		}
+		$self->{backupPodStarted} = 1;
+	}
+	return 1;
+}
+
+sub stopMysqlPod {
+	my $self = shift;
+
+	if ($self->{backupPodStarted}) {
+		# Signal end of backup and wait a few secs
+		my $podName  = $self->{backupPodName};
+		my $cmd = "exec --stdin $podName -n default -- bash -c \"touch /tmp/backupEnded \&\& sleep 1\"";
+		$self->{log}->info("Stopping backup pod $podName...");
+		$self->{main}->invokeKubectl($cmd, 'lines');
+
+		# Delete the pod
+		$cmd = "delete pod $podName -n default";
+		$self->{main}->invokeKubectl($cmd, 'lines');
+
+		$self->{backupPodStarted} = 0;
+	}
+}
+
 
 1;
 

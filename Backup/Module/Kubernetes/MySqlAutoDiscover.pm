@@ -38,8 +38,9 @@ sub backup {
 			my @SCHEMAS = $self->getSchemas($svc, $type);
 			my $schema;
 			foreach $schema (@SCHEMAS) {
+				#next if ($schema =~ /egoline/) || ($schema =~ /upload/) || ($schema =~ /lunchboerse/) || ($schema =~ /roundcube/);
 				$todo++;
-				$self->{log}->debug('Exporting database '.$name.'/'.$schema.'...');
+				$self->{log}->info('Exporting database '.$name.'/'.$schema.'...');
 				my $tmpfile = $self->exportDatabase($svc, $schema);
 				if ($tmpfile) {
 					my $size = -e $tmpfile ? -s $tmpfile : 0;

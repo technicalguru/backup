@@ -39,6 +39,7 @@ sub backup {
 			my $schema;
 			foreach $schema (@SCHEMAS) {
 				$todo++;
+				$self->{log}->debug('Exporting database '.$name.'/'.$schema.'...');
 				my $tmpfile = $self->exportDatabase($svc, $schema);
 				if ($tmpfile) {
 					my $size = -e $tmpfile ? -s $tmpfile : 0;
@@ -49,7 +50,7 @@ sub backup {
 				} else {
 					$self->{log}->error('Exporting database '.$name.'/'.$schema.'...failed');
 					$self->{log}->error('   See '.$self->{executor}->{logfile});
-					$self->{error} = 1;
+					#$self->{error} = 1;
 				}
 			}
 		}

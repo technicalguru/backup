@@ -1,5 +1,6 @@
 package Backup::Module::Kubernetes::MySql;
 use strict;
+use Backup::Main;
 use File::Temp qw/ :POSIX /;
 
 sub new {
@@ -43,7 +44,7 @@ sub dumpMySql {
 	my $self = shift;
 	my $info = shift;
 
-	my $dumpfile  = tmpnam().'.sql';
+	my $dumpfile  = Backup::Main::tempname($self->{config}).'.sql';
 	my $errorfile = $self->{executor}->{logfile};
 	my $cmd       = $self->{main}->{config}->{'kubectl'}.' exec '.$info->{pod}.' -n '.$info->{namespace}.' -c '.$info->{container}.' -- sh -c \'exec mysqldump --all-databases -uroot -p"$MYSQL_ROOT_PASSWORD"\' >"'.$dumpfile.'" 2>>"'.$errorfile.'"';
 	if (open(FOUT, ">>$errorfile")) {

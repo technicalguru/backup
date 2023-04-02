@@ -1,6 +1,7 @@
 package Backup::Module::File;
 use strict;
 use Backup::Log;
+use Backup::Main;
 use File::Temp qw/ :POSIX /;
 
 sub new {
@@ -30,7 +31,7 @@ sub backup {
 
 	if (scalar(@DIRS) > 0) {
 		# get the temporary file
-		my $file = tmpnam().'.tar.gz';
+		my $file = Backup::Main::tempname($self->{config}).'.tar.gz';
 
 		# Full or incremental?
 		my $tarType = 'full';

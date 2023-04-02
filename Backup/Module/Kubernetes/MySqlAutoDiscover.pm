@@ -1,6 +1,7 @@
 package Backup::Module::Kubernetes::MySqlAutoDiscover;
 use strict;
 use JSON;
+use Backup::Main;
 use File::Temp qw/ :POSIX /;
 use Number::Format 'format_number';
 
@@ -140,7 +141,7 @@ sub exportDatabase {
 	# Make sure the backup pod is running
 	return 0 if !($self->runMysqlPod());
 
-	my $dumpfile      = tmpnam().'.sql';
+	my $dumpfile      = Backup::Main::tempname($self->{config}).'.sql';
 	my $mysqldumpopts = defined($self->{config}->{mysqldumpopts}) ? $self->{config}->{mysqldumpopts} : '';
 	my $podName       = $self->{backupPodName};
 	my $cmd           = "exec $podName -n default --stdin -- bash -c \"".

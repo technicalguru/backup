@@ -1,5 +1,6 @@
 package Backup::Module::Docker::MySql;
 use strict;
+use Backup::Main;
 use File::Temp qw/ :POSIX /;
 
 
@@ -51,7 +52,7 @@ sub dumpMySql {
 	my $self = shift;
 	my $id   = shift;
 
-	my $dumpfile  = tmpnam().'.sql';
+	my $dumpfile  = Backup::Main::tempname($self->{config}).'.sql';
 	my $errorfile = $self->{executor}->{logfile};
 	my $cmd       = $self->{main}->{config}->{'docker'}.' exec -ti '.$id.' sh -c \'exec mysqldump --all-databases -uroot -p"$MYSQL_ROOT_PASSWORD"\' >"'.$dumpfile.'" 2>>"'.$errorfile.'"';
 	if (open(FOUT, ">>$errorfile")) {

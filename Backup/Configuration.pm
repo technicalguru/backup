@@ -36,5 +36,6 @@ sub load {
 	$self->{config} = parse_json($json);
 }
 
+
 1;
 

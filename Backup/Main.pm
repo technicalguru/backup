@@ -1,5 +1,6 @@
 package Backup::Main;
 use strict;
+use File::Temp qw/ :POSIX /;
 use Backup::Log;
 use Backup::Executor;
 use JSON;
@@ -213,15 +214,7 @@ sub mkDirs {
 	my $dir  = shift;
 
 	if (!$self->{config}->{dryRun}) {
-		my @PARTS = split(/\//, $dir);
-		my $check = '';
-		my $p;
-		foreach $p (@PARTS) {
-			$check .= '/'.$p;
-			if (!-d $check) {
-				mkdir($check) || die "Cannot create directory $check\n";
-			}
-		}
+		staticMkdirs($dir);
 	}
 }
 
@@ -234,6 +227,7 @@ sub loadModules {
 	foreach $name (keys(%{$self->{config}->{modules}})) {
 		my $config = $self->{config}->{modules}->{$name};
 		$self->copyConfig($config, 'dryRun');
+		$self->copyConfig($config, 'paths');
 		my $class  = $config->{module};
 		eval {
 			(my $pkg = $class) =~ s|::|/|g;
@@ -485,6 +479,30 @@ sub saveStatus {
 			print CFGOUT encode_json($self->{status});
 		}
 		close(CFGOUT);
+	}
+}
+
+sub tempname {
+	my $config = shift;
+	my $name   = tmpnam();
+	if (defined($config->{paths}->{tmpDir})) {
+		my $dir = $config->{paths}->{tmpDir};
+		staticMkdirs($dir);
+		($name =~ /\/([^\/]+)$/) && ($name = $dir.'/'.$1);
+	}
+	return $name;
+}
+
+sub staticMkdirs {
+	my $dir   = shift;
+	my @PARTS = split(/\//, $dir);
+	my $check = '';
+	my $p;
+	foreach $p (@PARTS) {
+		$check .= '/'.$p;
+		if (!-d $check) {
+			mkdir($check) || die "Cannot create directory $check\n";
+		}
 	}
 }
 

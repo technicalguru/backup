@@ -1,6 +1,7 @@
 package Backup::Module::GlusterFS;
 use strict;
 use Backup::Log;
+use Backup::Main;
 use File::Temp qw/ :POSIX /;
 
 sub new {
@@ -66,7 +67,7 @@ sub backup {
 			my $fsdir = $FS->{$fsname};
 
 			# get the temporary file
-			my $file = tmpnam().'.tar.gz';
+			my $file = Backup::Main::tempname($self->{config}).'.tar.gz';
 
 			$self->{log}->debug('Creating backup of '.$fsdir);
 

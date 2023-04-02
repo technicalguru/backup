@@ -1,6 +1,7 @@
 package Backup::Module::MySql;
 use strict;
 use Backup::Log;
+use Backup::Main;
 use File::Temp qw/ :POSIX /;
 
 sub new {
@@ -58,7 +59,7 @@ sub exportDatabase {
 	my $instance = shift;
 	my $schema   = shift;
 
-	my $dumpfile = tmpnam().'.sql';
+	my $dumpfile = Backup::Main::tempname($self->{config}).'.sql';
 	my $mysqldumpopts = defined($self->{config}->{mysqldumpopts}) ? $self->{config}->{mysqldumpopts} : '';
 	my $cmd = $self->{config}->{mysqldump}.
 			" --host=".$instance->{hostname}.

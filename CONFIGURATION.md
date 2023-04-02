@@ -131,7 +131,7 @@ The backup program will send out a notification when errors occurred.
 Configure this notification as follows:
 
 ```json
-	notification" : {
+	"notification" : {
 		"name"    : "MyNotification",
 		"module"  : "Perl::Module::Name",
 		"enabled" : true
@@ -247,7 +247,7 @@ daily backups. Weekly and monthly backups will use the daily configuration.
 					"daily"    : [ ]
 				}
 			}
-		},
+		}
 	}
 ```
 
@@ -331,16 +331,14 @@ this is the better approach to find databases and export.
 
 ```json
 	"modules" : {
-				"MySQL" : {
-					"enabled"       : true,
-					"module"        : "Backup::Module::Kubernetes::MySqlAutoDiscover",
-					"serviceLabels" : {
-						"technicalguru/backup-class": "mariadb"
-					},
-					"username"  : "root",
-					"password"  : "password"
-				}
-			}
+		"MySQL" : {
+			"enabled"       : true,
+			"module"        : "Backup::Module::Kubernetes::MySqlAutoDiscover",
+			"serviceLabels" : {
+				"technicalguru/backup-class": "mariadb"
+			},
+			"username"  : "root",
+			"password"  : "password"
 		}
 	}
 ```

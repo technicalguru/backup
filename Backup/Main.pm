@@ -286,6 +286,7 @@ sub compressFiles {
 	my $executor = Backup::Executor->new('logfile' => $logDir.'/COMPRESS-'.$self->{timestring}.'.log');
 	my $config   = $self->{config}->{compression};
 	$self->copyConfig($config, 'dryRun');
+	$self->copyConfig($config, 'paths');
 	my $class    = $config->{module};
 	eval {
 		(my $pkg = $class) =~ s|::|/|g;
@@ -371,6 +372,7 @@ sub transferFiles {
 		my $config   = $self->{config}->{transfer};
 		$config->{backupDir} = $self->{config}->{paths}->{backupDir};
 		$self->copyConfig($config, 'dryRun');
+		$self->copyConfig($config, 'paths');
 		my $class    = $config->{module};
 		eval {
 			(my $pkg = $class) =~ s|::|/|g;
@@ -400,6 +402,7 @@ sub notify {
 		my $executor = Backup::Executor->new('logfile' => $logDir.'/NOTIFY-'.$self->{timestring}.'.log');
 		my $config   = $self->{config}->{notification};
 		$self->copyConfig($config, 'dryRun');
+		$self->copyConfig($config, 'paths');
 		my $class    = $config->{module};
 		eval {
 			(my $pkg = $class) =~ s|::|/|g;

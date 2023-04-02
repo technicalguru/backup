@@ -24,6 +24,7 @@ sub backup {
 	foreach $module (keys(%{$self->{config}->{modules}})) {
 		my $moduleConfig = $self->{config}->{modules}->{$module};
 		$self->{main}->copyConfig($moduleConfig, 'dryRun');
+		$self->{main}->copyConfig($moduleConfig, 'paths');
 		my $moduleClass  = $moduleConfig->{module};
 		eval {
 			(my $pkg = $moduleClass) =~ s|::|/|g;

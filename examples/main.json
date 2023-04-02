@@ -6,6 +6,7 @@
 	"paths"      : {
 		"backupDir" : "/var/backup",
 		"logDir"    : "/var/log/backup"
+		"tmpDir"    : "/var/tmp"
 	},
 	"modules" : {
 		"MySQL"      : {

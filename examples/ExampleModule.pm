@@ -1,6 +1,6 @@
 package examples::ExampleModule;
 use strict;
-use File::Temp qw/ :POSIX /;
+use Backup::Main;
 
 sub new {
 	my ($class, %args) = @_;
@@ -16,7 +16,7 @@ sub backup {
 	my $type = shift;
 	my @RC = ();
 
-	my $file = tmpnam().'.txt';
+	my $file = Backup::Main::tempname($self->{config}).'.txt';
 	my $rc   = 0;
 
 	# Make sure you do not produce a backup when dry-run is active

@@ -46,6 +46,7 @@ This information will be used in notifications only and has no further meaning.
 	"paths" : {
 		"backupDir" : "/var/backup",
 		"logDir"    : "/var/log/backup"
+		"tmpDir"    : "/var/tmp"
 	}
 ```
 
@@ -53,6 +54,7 @@ This information will be used in notifications only and has no further meaning.
 | ---- | ----- | ----------- |
 | backupDir | string | The absolute path where all backups shall be stored |
 | logDir | string | The absolute path where log files will be stored |
+| tmpDir | string | The absolute path where temporary files will be stored |
 
 ## Backup Modules
 

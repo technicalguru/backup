@@ -118,7 +118,6 @@ sub invokeKubectl {
 	}
 	return undef if $?;
 
-	#print $json;
 	if ($type eq 'json') {
 		return parse_json($content);
 	} elsif ($type eq 'lines') {

@@ -92,7 +92,7 @@ sub getSchemas {
 	# otherwise return all instances defined
 	my $podName  = $self->{backupPodName};
 	my $cmd = "exec $podName -n default --stdin -- bash -c \"".
-		"mysql ".
+		"/usr/bin/mysql ".
 		" --user=".$self->{config}->{username}.
 		" --password=".$self->{config}->{password}.
 		" --host=".$svc->{metadata}->{name}.'.'.$svc->{metadata}->{namespace}.'.svc.cluster.local '.
@@ -100,7 +100,7 @@ sub getSchemas {
 		" --batch".
 		" --skip-column-names -e \\\"show databases\\\"".
 		"\"";
-	$self->{log}->debug($cmd);
+#	$self->{log}->debug($cmd);
 	my @LINES = $self->{main}->invokeKubectl($cmd, 'lines');
 #	if (!defined(@LINES) || !scalar(@LINES)) {
 #		$self->{log}->error("Cannot retrieve database list");
@@ -116,6 +116,7 @@ sub getSchemas {
 		next if $line eq 'pma';
 		next if $line eq 'phpmyadmin';
 		next if $line eq 'sys';
+		next if $line =~ /lost\+found/;
 		next if $line =~ /pod .* deleted/;
 		push(@RC, $line);
 	}
@@ -145,7 +146,7 @@ sub exportDatabase {
 	my $mysqldumpopts = defined($self->{config}->{mysqldumpopts}) ? $self->{config}->{mysqldumpopts} : '';
 	my $podName       = $self->{backupPodName};
 	my $cmd           = "exec $podName -n default --stdin -- bash -c \"".
-		"mysqldump".
+		"/usr/bin/mysqldump".
 		" --user=".$self->{config}->{username}.
 		" --password=".$self->{config}->{password}.
 		" --host=".$svc->{metadata}->{name}.'.'.$svc->{metadata}->{namespace}.".svc.cluster.local".
@@ -205,7 +206,7 @@ sub runMysqlPod {
 
 	if (!$self->{backupPodStarted}) {
 		my $podName  = $self->{backupPodName};
-		my $cmd = "run $podName -n default --image=mariadb --restart=Never -- bash -c \"while [ ! -f /tmp/backupEnded ]; do sleep 1; done; \"";
+		my $cmd = "run $podName -n default --image=mariadb:10.11.2 --restart=Never -- bash -c \"while [ ! -f /tmp/backupEnded ]; do sleep 1; done; \"";
 		$self->{log}->info("Starting backup pod $podName...");
 		$self->{main}->invokeKubectl($cmd, 'lines');
 
